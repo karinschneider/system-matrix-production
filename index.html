@@ -5,103 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Karin Schneider | System Index</title>
     <style>
-        :root {
-            --bg: #000000;
-            --text: #ffffff;
-            --dim: #444444;
-            --mid: #888888;
-            --border: #222222;
-            --mono: "Courier New", Courier, monospace;
+        :root { 
+            --bg: #ffffff; 
+            --text: #000000; 
+            --accent: #666666; 
+            --border: #dddddd; 
             --cors-color: #ff3300;
             --raw-color: #00ff88;
-            --goog-color: #ffcc00;
+            --cdn-color: #ffcc00;
         }
-        body.light {
-            --bg: #f5f4f0;
-            --text: #0a0a0a;
-            --dim: #bbbbbb;
-            --mid: #666666;
-            --border: #d0d0d0;
+        body.dark-mode { 
+            --bg: #000000; 
+            --text: #ffffff; 
+            --accent: #999999; 
+            --border: #333333; 
         }
-
-        /* ── RIGOROUS TYPEFACE ENFORCEMENT ── */
-        * { 
+        
+        * {
             box-sizing: border-box; 
             margin: 0; 
-            padding: 0; 
-            font-family: "Courier New", Courier, monospace !important;
+            padding: 0;
         }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-size: 11px;
-            line-height: 1.5;
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
+        
+        body { 
+            background-color: var(--bg); color: var(--text); 
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; 
+            -webkit-font-smoothing: antialiased;
+            padding: 40px; padding-bottom: 60px;
+            font-size: 13px; line-height: 1.5; letter-spacing: -0.01em; 
+            transition: background-color 0.2s, color 0.2s;
+            position: relative; min-height: calc(100vh - 80px);
             cursor: crosshair;
         }
-
-        /* ── CUSTOM CURSOR INDICATOR ── */
-        #cursor {
-            position: fixed;
-            width: 8px; height: 8px;
-            background: var(--text);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            transform: translate(-50%,-50%);
-            mix-blend-mode: difference;
-            transition: width 0.15s, height 0.15s;
-        }
-        #cursor.active { width: 32px; height: 32px; border-radius: 2px; }
-
-        /* ── LAYOUT STRUCTURE ── */
+        
         #shell {
-            display: grid;
-            grid-template-rows: auto auto auto auto auto 1fr auto;
-            min-height: 100vh;
-            padding: 28px 32px 32px;
-            gap: 0;
-        }
-
-        /* ── HEADER TIER ── */
-        #header {
-            border-bottom: 1px solid var(--text);
-            padding-bottom: 16px;
-            margin-bottom: 20px;
             display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-        }
-        #main-name {
-            font-size: 18px;
-            font-weight: normal;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-        }
-        #sys-btn {
-            background: none;
-            border: 1px solid var(--text);
-            color: var(--text);
-            font-size: 10px;
-            letter-spacing: 0.1em;
-            padding: 3px 10px;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-        #sys-btn:hover { background: var(--text); color: var(--bg); }
-
-        /* ── SYSTEM STATUS DELTA ── */
-        #status-bar {
-            font-size: 10px;
-            color: var(--mid);
-            margin-bottom: 18px;
-            letter-spacing: 0.04em;
-            min-height: 16px;
+            flex-direction: column;
+            width: 100%;
         }
 
-        /* ── MAIN SWITCHBOARD MATRIX ── */
+        header { margin-bottom: 40px; border-bottom: 2px solid var(--text); padding-bottom: 20px; }
+        .header-top { display: flex; justify-content: space-between; align-items: baseline; }
+        .title { font-size: 20px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
+        
+        .mode-toggle { 
+            border: 1px solid var(--text); background: none; padding: 4px 12px; 
+            cursor: pointer; font-size: 11px; text-transform: uppercase; 
+            font-weight: 500; color: var(--text); transition: all 0.2s;
+        }
+        .mode-toggle:hover { background: var(--text); color: var(--bg); }
+
+        /* ── INTERACTIVE MATRIX SWITCHBOARD CONSOLE ── */
         #console-zone {
             border: 1px solid var(--border);
             padding: 14px 18px;
@@ -116,20 +70,21 @@
             padding-bottom: 8px;
             border-bottom: 1px solid var(--border);
         }
-        #console-title { letter-spacing: 0.2em; font-size: 10px; text-transform: uppercase; }
+        #console-title { letter-spacing: 0.2em; font-size: 10px; text-transform: uppercase; font-weight: bold; }
+        
         .master-row {
             display: flex;
             gap: 22px;
             margin-bottom: 16px;
             align-items: center;
+            font-size: 11px;
         }
-        .master-label { color: var(--mid); margin-right: 4px; }
+        .master-label { color: var(--accent); margin-right: 4px; }
         .master-row .node { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
         .master-row .node:hover { color: var(--raw-color); }
-        .master-row .node[data-mode="goog"]:hover { color: var(--goog-color); }
+        .master-row .node[data-mode="cdn"]:hover { color: var(--cdn-color); }
         .master-row .node[data-mode="mute"]:hover { color: var(--cors-color); }
 
-        /* Multi-Channel Museum Subconsole Grid */
         #museum-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -144,6 +99,7 @@
             align-items: center;
             justify-content: space-between;
             text-transform: uppercase;
+            font-weight: bold;
         }
         .channel-row { display: flex; gap: 12px; }
         .ch-node {
@@ -152,13 +108,13 @@
             align-items: center;
             gap: 4px;
             user-select: none;
-            color: var(--mid);
+            color: var(--accent);
             text-transform: uppercase;
         }
         .ch-node:hover { color: var(--text); }
         .dot { transition: color 0.15s; }
         .dot.on { color: var(--text); }
-        .dot.off { color: var(--dim); }
+        .dot.off { color: var(--accent); }
 
         .cors-badge {
             display: none;
@@ -171,44 +127,10 @@
         @keyframes blink { 50% { opacity: 0; } }
 
         .global-actions { display: flex; gap: 14px; margin-top: 16px; padding-top: 8px; border-top: 1px solid var(--border); }
-        .g-btn { cursor: pointer; color: var(--mid); user-select: none; }
+        .g-btn { cursor: pointer; color: var(--accent); user-select: none; font-size: 10px; }
         .g-btn:hover { color: var(--text); }
 
-        /* ── AUDIO ACCESS MATRIX BOOT PROMPT ── */
-        #boot-prompt {
-            border: 1px dashed var(--border);
-            padding: 22px;
-            text-align: center;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            cursor: pointer;
-            color: var(--mid);
-            margin-bottom: 20px;
-            transition: color 0.2s, border-color 0.2s;
-            background: rgba(128,128,128,0.02);
-        }
-        #boot-prompt:hover { color: var(--text); border-color: var(--text); }
-        #boot-prompt.hidden { display: none; }
-
-        /* ── SYSTEM EVENT TRANSACTION LEDGER ── */
-        #ledger {
-            font-size: 10px;
-            color: var(--mid);
-            line-height: 1.6;
-            margin-bottom: 18px;
-            min-height: 64px;
-            max-height: 120px;
-            overflow-y: hidden;
-        }
-        .ledger-line { display: flex; gap: 8px; }
-        .ledger-line .ts { color: var(--dim); flex-shrink: 0; }
-        .ledger-line .agent { flex-shrink: 0; min-width: 80px; text-transform: uppercase; font-weight: bold; }
-        .ledger-line .agent.cors { color: var(--cors-color); }
-        .ledger-line .agent.raw  { color: var(--raw-color); }
-        .ledger-line .agent.goog { color: var(--goog-color); }
-        .ledger-line .detail { word-break: break-all; text-transform: uppercase; }
-
-        /* ── ARCHITECTURAL MUTATION OPERATORS ── */
+        /* ── DECONSTRUCTION TOOLS ── */
         #gate-row {
             display: flex;
             gap: 6px;
@@ -221,7 +143,7 @@
             padding: 4px 10px;
             font-size: 10px;
             letter-spacing: 0.08em;
-            color: var(--mid);
+            color: var(--accent);
             transition: all 0.15s;
             user-select: none;
             background: var(--bg);
@@ -229,68 +151,59 @@
         }
         .gate-op:hover { border-color: var(--text); color: var(--text); }
         .gate-op.fired { border-color: var(--raw-color); color: var(--raw-color); }
-
-        /* ── DYNAMIC ASSET GRID MATRIX ── */
-        #grid-matrix {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            auto-rows: 120px;
-            gap: 10px;
-            margin-bottom: 40px;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        
+        /* ── MATRIX DISPLAY FIELD ── */
+        #grid-matrix { 
+            display: grid; grid-template-columns: repeat(12, 1fr); auto-rows: 140px; 
+            gap: 15px; width: 100%; margin-bottom: 60px; margin-top: 20px;
         }
-
-        .block {
-            border: 1px solid var(--border);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 10px;
-            cursor: pointer;
-            overflow: hidden;
-            background: var(--bg);
-            transition: border-color 0.2s;
+        
+        .block { 
+            border: 1px solid var(--text); position: relative; 
+            display: flex; flex-direction: column; justify-content: flex-end; 
+            padding: 15px; cursor: pointer; overflow: hidden; background: var(--bg);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s;
         }
-        .block:hover { border-color: var(--text); }
-
-        .block-canvas {
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none; z-index: 1;
-        }
-        .block-img {
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
-            object-fit: cover; opacity: 0;
-            transition: opacity 0.4s;
-            z-index: 2; pointer-events: none;
+        .block:hover { border-color: var(--accent); transform: scale(1.01); }
+        
+        .block-img { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            object-fit: cover; opacity: 0; transition: opacity 0.4s, filter 0.3s; 
+            z-index: 1; pointer-events: none;
         }
         .block-img.vis { opacity: 0.35; }
-        .block:hover .block-img.vis { opacity: 0.85; filter: invert(1); }
-
-        .block-label {
-            position: relative; z-index: 5;
-            font-size: 9px;
-            letter-spacing: 0.04em;
-            background: var(--bg);
-            color: var(--text);
-            padding: 3px 6px;
-            border: 1px solid var(--border);
-            display: inline-block;
-            max-width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .block:hover .block-img.vis { opacity: 0.85; filter: invert(1) contrast(1.2); }
+        
+        .block-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+        
+        .block-label { 
+            position: relative; font-size: 10px; font-weight: bold; 
+            letter-spacing: 0.05em; background: var(--bg); color: var(--text);
+            padding: 4px 8px; display: inline-block; max-width: 100%;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            border: 1px solid var(--text); z-index: 5; margin-top: auto;
             text-transform: uppercase;
         }
 
-        /* ── HISTORY PERSISTENCE LEDGER (bottom) ── */
+        #ledger-container {
+            font-family: inherit; font-size: 10px; color: var(--accent);
+            line-height: 1.5; margin-bottom: 20px; display: flex; flex-direction: column;
+            min-height: 64px; max-height: 120px; overflow: hidden;
+        }
+        .ledger-line { display: flex; gap: 8px; }
+        .ledger-line .ts { color: var(--accent); opacity: 0.5; flex-shrink: 0; }
+        .ledger-line .agent { flex-shrink: 0; min-width: 80px; text-transform: uppercase; font-weight: bold; }
+        .ledger-line .agent.cors { color: var(--cors-color); }
+        .ledger-line .agent.raw  { color: var(--raw-color); }
+        .ledger-line .agent.cdn  { color: var(--cdn-color); }
+        .ledger-line .detail { word-break: break-all; text-transform: uppercase; }
+
         #resume-ledger {
             border-top: 1px solid var(--border);
             padding-top: 18px;
             font-size: 10px;
-            color: var(--mid);
+            color: var(--accent);
+            margin-top: 30px;
         }
         #resume-ledger .r-header {
             display: flex;
@@ -310,42 +223,50 @@
             text-transform: uppercase;
         }
         .r-row:hover { color: var(--text); }
-        .r-row .r-year { color: var(--dim); }
+        .r-row .r-year { color: var(--accent); opacity: 0.6; }
 
-        /* VU SIGNAL GRAPH ACTIVITY BAR */
+        #audio-prompt {
+            border: 1px dashed var(--text); padding: 20px; margin-bottom: 25px;
+            color: var(--text); display: flex; justify-content: center; 
+            align-items: center; font-size: 12px; letter-spacing: 2px; 
+            font-weight: bold; cursor: pointer; text-transform: uppercase;
+            background: rgba(128,128,128,0.02);
+        }
+
+        #orbital-lens { 
+            position: fixed; width: 30px; height: 30px; background: var(--text); 
+            border-radius: 50%; pointer-events: none; z-index: 100; 
+            transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, background-color 0.3s; 
+            mix-blend-mode: difference; 
+        }
+
         #audio-vu {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            height: 2px;
-            background: var(--bg);
-            z-index: 200;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 2px; background: var(--bg); z-index: 200;
         }
         #audio-vu-bar {
-            height: 100%;
-            width: 0%;
-            background: var(--raw-color);
-            transition: width 0.08s, background 0.3s;
+            height: 100%; width: 0%; background: var(--raw-color); transition: width 0.08s, background 0.3s;
         }
     </style>
 </head>
-<body>
+<body class="dark-mode">
 
-<div id="cursor"></div>
+<div id="orbital-lens"></div>
 <div id="audio-vu"><div id="audio-vu-bar"></div></div>
 
 <div id="shell">
-
-    <header id="header">
-        <div id="main-name">K.ari.n Schneider</div>
-        <button id="sys-btn" onclick="invertSystem()">Invert System</button>
+    <header>
+        <div class="header-top">
+            <div class="title" id="main-name">K.ari.n Schneider</div>
+            <button class="mode-toggle" onclick="toggleMode()">Invert System</button>
+        </div>
     </header>
 
-    <div id="status-bar">[SIGNAL RECEPTOR IDLE] // MONITOR DISCONNECTED</div>
-
+    <div id="audio-prompt" onclick="activateSystem()">[ Initialize Electromagnetic Acoustic Matrix ]</div>
+    
     <section id="console-zone">
         <div id="console-header">
             <span id="console-title">⬡ BIOSOUND CONSOLE — INSTITUTIONAL NETWORK ROUTER</span>
-            <span style="color:var(--dim)">CORS=AUDIBLE / RAW=LIVE / GOOG=CDN BYTES</span>
+            <span style="color:var(--accent); font-size:10px;">CORS=AUDIBLE / RAW=LIVE / CDN=BYTE GRAIN</span>
         </div>
 
         <div class="master-row">
@@ -353,8 +274,8 @@
             <span class="node" data-mode="raw" onclick="setMaster('raw')">
                 <span id="m-raw" class="dot on">(•)</span> RAW
             </span>
-            <span class="node" data-mode="goog" onclick="setMaster('goog')">
-                <span id="m-goog" class="dot off">( )</span> GOOG
+            <span class="node" data-mode="cdn" onclick="setMaster('cdn')">
+                <span id="m-cdn" class="dot off">( )</span> CDN
             </span>
             <span class="node" data-mode="mute" onclick="setMaster('mute')">
                 <span id="m-mute" class="dot off">( )</span> [MUTE]
@@ -378,34 +299,31 @@
         <span class="gate-op" onclick="gateOp('shuffle')" title="Random reorder">⟳ SHUFFLE</span>
         <span class="gate-op" onclick="gateOp('tall')"    title="Tall rows">⊟ TALL</span>
     </div>
-
-    <div id="boot-prompt" onclick="boot()">
-        [ Initialize Electromagnetic Acoustic Matrix ]
+    
+    <div id="ledger-container">
+        <div class="ledger-line"><span class="ts">[*]</span><span class="agent sys">SYS</span><span class="detail">[SIGNAL RECEPTOR IDLE] // EXPECTING TRANSACTIONS</span></div>
     </div>
-
-    <div id="ledger"></div>
-
+    
     <div id="grid-matrix"></div>
 
     <div id="resume-ledger">
         <div class="r-header">
             <span>DATA.VCS — EXPANDING REPOSITORY RECORDS</span>
-            <span id="ledger-count" style="color:var(--dim)">0 ENTRIES DETECTED</span>
+            <span id="ledger-count" style="color:var(--accent)">0 ENTRIES DETECTED</span>
         </div>
         <div id="resume-rows"></div>
     </div>
-
 </div>
 
 <script>
 /* ── INSTITUTIONS INFRASTRUCTURE DATA ── */
 const MUSEUMS = {
-    whitney:  { label: 'WHITNEY',  raw: true,  goog: false, rawUrl: 'https://whitney.org/favicon.ico',                    googUrl: 'https://www.googletagmanager.com/gtm.js?id=GTM-WHITNEY' },
-    pompidou: { label: 'POMPIDOU', raw: false, goog: true,  rawUrl: 'https://www.centrepompidou.fr/favicon.ico',           googUrl: 'https://www.googletagmanager.com/gtm.js?id=GTM-POMPIDOU' },
-    sztuki:   { label: 'SZTUKI',   raw: true,  goog: false, rawUrl: 'https://msl.org.pl/favicon.ico',                     googUrl: 'https://www.google-analytics.com/analytics.js' },
-    momasp:   { label: 'MoMA SP',  raw: false, goog: true,  rawUrl: 'https://mam.org.br/favicon.ico',                     googUrl: 'https://www.googletagmanager.com/gtag/js?id=G-MOMA' },
-    moderno:  { label: 'MODERNO',  raw: false, goog: true,  rawUrl: 'https://museomoderno.org/favicon.ico',                googUrl: 'https://www.googletagmanager.com/gtag/js?id=G-MODERNO' },
-    rijeka:   { label: 'RIJEKA',   raw: true,  goog: false, rawUrl: 'https://mmsu.hr/favicon.ico',                        googUrl: 'https://www.google-analytics.com/ga.js' }
+    whitney:  { label: 'WHITNEY',  raw: true,  cdn: false, rawUrl: 'https://whitney.org/favicon.ico',                    cdnUrl: 'https://whitney.org/assets/application.js' },
+    pompidou: { label: 'POMPIDOU', raw: false, cdn: true,  rawUrl: 'https://www.centrepompidou.fr/favicon.ico',           cdnUrl: 'https://www.centrepompidou.fr/_next/static/chunks/main.js' },
+    sztuki:   { label: 'SZTUKI',   raw: true,  cdn: false, rawUrl: 'https://msl.org.pl/favicon.ico',                     cdnUrl: 'https://msl.org.pl/assets/js/main.js' },
+    momasp:   { label: 'MoMA SP',  raw: false, cdn: true,  rawUrl: 'https://mam.org.br/favicon.ico',                     cdnUrl: 'https://mam.org.br/js/app.js' },
+    moderno:  { label: 'MODERNO',  raw: false, cdn: true,  rawUrl: 'https://museomoderno.org/favicon.ico',                cdnUrl: 'https://museomoderno.org/js/main.js' },
+    rijeka:   { label: 'RIJEKA',   raw: true,  cdn: false, rawUrl: 'https://mmsu.hr/favicon.ico',                        cdnUrl: 'https://mmsu.hr/wp-includes/js/wp-embed.min.js' }
 };
 
 const BASE_FREQ = { whitney: 55, pompidou: 82.4, sztuki: 110, momasp: 164.8, moderno: 220, rijeka: 329.6 };
@@ -419,34 +337,33 @@ let rawCsvText = '';
 let channelNodes = {}; 
 let corsProbeCache = {}; 
 let vuRafId = null;
-let googByteCache = {}; 
-let googTickInterval = null;
+let cdnByteCache = {}; 
+let cdnTickInterval = null;
 
 const CONSONANT_CLUSTER_RE = /[bcdfghjklmnpqrstvwxyz]{2,}/gi;
 const VOWELS = new Set('aeiouAEIOU');
 
-/* ── STRUCTURAL GLOBAL TARGET MAP REGISTRIES ── */
-let cursor = null;
-let statusBar = null;
-let ledgerEl = null;
-let gridEl = null;
-let resumeEl = null;
-let vuBar = null;
-let bootPrompt = null;
-let museumGridEl = null;
+/* ── DOM REFS ── */
+const matrixContainer = document.getElementById('grid-matrix');
+const ledgerContainer = document.getElementById('ledger-container');
+const lens = document.getElementById('orbital-lens');
+const museumGridEl = document.getElementById('museum-grid');
+const resumeEl = document.getElementById('resume-rows');
+const vuBar = document.getElementById('audio-vu-bar');
+const bootPrompt = document.getElementById('audio-prompt');
+
+let humanTrajectory = [];
 
 /* ════════════════════════ GEOGRAPHIC MOTION SIGNAL TELEMETRY ════════════════════════ */
 document.addEventListener('mousemove', e => {
-    if (cursor) {
-        cursor.style.left = e.clientX + 'px';
-        cursor.style.top  = e.clientY + 'px';
+    if (lens) {
+        lens.style.left = e.clientX + 'px';
+        lens.style.top  = e.clientY + 'px';
     }
-    const ts = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    if (statusBar) statusBar.innerHTML = `[${ts}] // SYSTEM_OPERATOR_TELEMETRY // X:${e.clientX} Y:${e.clientY}`;
 });
 
-/* ════════════════════════ HARDWARE SIGNAL BOOT ACCESS MATRIX ════════════════════════ */
-function boot() {
+/* ════════════════════════ AUDIO Matrix INITIALIZE ════════════════════════ */
+function activateSystem() {
     if (audioCtx) return;
     if (bootPrompt) bootPrompt.classList.add('hidden');
 
@@ -460,7 +377,7 @@ function boot() {
     log('SYS', 'ROUTING MATRICES ONLINE — TARGETING LIVE INSTITUTIONAL ENDPOINTS');
 }
 
-/* ════════════════════════ CONSOLE INFRASTRUCTURE LOOPS ════════════════════════ */
+/* ════════════════════════ CONSOLE ROUTER ENGINE ════════════════════════ */
 function buildMuseumGrid() {
     if (!museumGridEl) return;
     museumGridEl.innerHTML = Object.entries(MUSEUMS).map(([id, m]) => `
@@ -472,8 +389,8 @@ function buildMuseumGrid() {
                 <span class="ch-node" data-type="raw" onclick="toggleChannel('${id}','raw')">
                     <span class="dot ${m.raw?'on':'off'}" id="${id}-raw">${m.raw?'(•)':'( )'}</span> RAW
                 </span>
-                <span class="ch-node" data-type="goog" onclick="toggleChannel('${id}','goog')">
-                    <span class="dot ${m.goog?'on':'off'}" id="${id}-goog">${m.goog?'(•)':'( )'}</span> GOOG
+                <span class="ch-node" data-type="cdn" onclick="toggleChannel('${id}','cdn')">
+                    <span class="dot ${m.cdn?'on':'off'}" id="${id}-cdn">${m.cdn?'(•)':'( )'}</span> CDN
                 </span>
             </div>
         </div>
@@ -492,9 +409,9 @@ function buildChannelPipelines() {
         osc.connect(chGain);
         osc.start();
 
-        const googGain = audioCtx.createGain();
-        googGain.gain.setValueAtTime(0, audioCtx.currentTime);
-        googGain.connect(chGain);
+        const cdnGain = audioCtx.createGain();
+        cdnGain.gain.setValueAtTime(0, audioCtx.currentTime);
+        cdnGain.connect(chGain);
 
         const corsOsc = audioCtx.createOscillator();
         corsOsc.type = 'square';
@@ -505,13 +422,13 @@ function buildChannelPipelines() {
         corsEnv.connect(masterGain);
         corsOsc.start();
 
-        channelNodes[id] = { chGain, osc, googGain, corsOsc, corsEnv, googGrainIdx: 0 };
+        channelNodes[id] = { chGain, osc, cdnGain, corsOsc, corsEnv, cdnGrainIdx: 0 };
         startNetworkProbe(id);
     });
     applyGains();
 }
 
-/* ─── NATIVE GEOGRAPHIC PROBE ROUTINES ─── */
+/* ─── REAL LATENCY CONDUIT ─── */
 function startNetworkProbe(id) {
     if (!audioCtx || masterMode === 'mute') {
         scheduleProbe(id);
@@ -549,7 +466,7 @@ function handleRawResult(id, latencyMs, isCorsOrError) {
             corsProbeCache[id] = true;
             const badge = document.getElementById(`cors-${id}`);
             if (badge) badge.classList.add('show');
-            log('CORS', `BLOCK ← ${m.label} // latency:${latencyMs.toFixed(2)}ms // CRITICAL ACCESS REJECTED`, 'cors');
+            log('CORS', `BLOCK ← ${m.label} // latency:${latencyMs.toFixed(2)}ms // HANDSHAKE REJECTED`, 'cors');
         }
         const now = audioCtx.currentTime;
         cn.corsEnv.gain.cancelScheduledValues(now);
@@ -560,37 +477,37 @@ function handleRawResult(id, latencyMs, isCorsOrError) {
 
     const rawHz = BASE_FREQ[id] + (latencyMs * 0.6);
     cn.osc.frequency.setTargetAtTime(rawHz, audioCtx.currentTime, 0.08);
-    log('RAW', `${m.label} // RECEPTOR DELTA: ${latencyMs.toFixed(3)}ms → TRACE: ${rawHz.toFixed(1)}Hz`, 'raw');
+    log('RAW', `${m.label} // ${latencyMs.toFixed(3)}ms → ${rawHz.toFixed(1)}Hz`, 'raw');
     updateGainForChannel(id);
 }
 
-/* ─── THIRD PARTY REPOSITORY ACCESS ROUTINES ─── */
-async function fetchGoogBytes(id) {
-    if (googByteCache[id]) return;
+/* ─── CDN BYTES TRANSDUCTION ─── */
+async function fetchCdnBytes(id) {
+    if (cdnByteCache[id]) return;
     const m = MUSEUMS[id];
     try {
-        await fetch(m.googUrl, { mode: 'no-cors', cache: 'no-store' });
-        googByteCache[id] = m.googUrl.split('').map(c => c.charCodeAt(0));
-        log('GOOG', `${m.label} // REPOSITORY PACKET TRANSDUCED (${googByteCache[id].length}b)`, 'goog');
+        await fetch(m.cdnUrl, { mode: 'no-cors', cache: 'no-store' });
+        cdnByteCache[id] = m.cdnUrl.split('').map(c => c.charCodeAt(0));
+        log('CDN', `${m.label} // ASSET PACKET BYTES CONVERTED (${cdnByteCache[id].length}b)`, 'cdn');
     } catch (err) {
-        googByteCache[id] = (err.message || 'CORS').split('').map(c => c.charCodeAt(0));
-        log('CORS', `${m.label} // PIPELINE CAPTURED ERROR CONTEXT`, 'cors');
+        cdnByteCache[id] = (err.message || 'CORS').split('').map(c => c.charCodeAt(0));
+        log('CORS', `${m.label} // CDN ACCESS OVERRIDE`, 'cors');
         const badge = document.getElementById(`cors-${id}`);
         if (badge) badge.classList.add('show');
     }
 }
 
-function tickGoogGrain(id) {
-    if (!audioCtx || masterMode !== 'goog') return;
+function tickCdnGrain(id) {
+    if (!audioCtx || masterMode !== 'cdn') return;
     const m = MUSEUMS[id];
     const cn = channelNodes[id];
-    if (!m || !m.goog || !cn) return;
-    const bytes = googByteCache[id];
+    if (!m || !m.cdn || !cn) return;
+    const bytes = cdnByteCache[id];
     if (!bytes || bytes.length === 0) return;
 
-    const idx = cn.googGrainIdx % bytes.length;
+    const idx = cn.cdnGrainIdx % bytes.length;
     const byte = bytes[idx];
-    cn.googGrainIdx++;
+    cn.cdnGrainIdx++;
 
     const hz = 200 + (byte / 255) * 7800;
 
@@ -607,17 +524,17 @@ function tickGoogGrain(id) {
     grainOsc.start();
     grainOsc.stop(audioCtx.currentTime + 0.045);
 
-    log('GOOG', `${m.label} // TRACK_BYTE[${idx}]=${byte} → LINE_DENSITY: ${hz.toFixed(0)}Hz`, 'goog');
+    log('CDN', `${m.label} // BYTE[${idx}]=${byte} → ${hz.toFixed(0)}Hz`, 'cdn');
 }
 
-function startGoogLoop() {
-    if (googTickInterval) return;
-    googTickInterval = setInterval(() => {
-        if (masterMode !== 'goog') return;
+function startCdnLoop() {
+    if (cdnTickInterval) return;
+    cdnTickInterval = setInterval(() => {
+        if (masterMode !== 'cdn') return;
         Object.keys(MUSEUMS).forEach(async id => {
-            if (!MUSEUMS[id].goog) return;
-            if (!googByteCache[id]) await fetchGoogBytes(id);
-            tickGoogGrain(id);
+            if (!MUSEUMS[id].cdn) return;
+            if (!cdnByteCache[id]) await fetchCdnBytes(id);
+            tickCdnGrain(id);
         });
     }, 55);
 }
@@ -627,7 +544,7 @@ function applyGains() {
     if (masterMode === 'mute') {
         masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
         if (vuBar) vuBar.style.width = '0%';
-        if (googTickInterval) { clearInterval(googTickInterval); googTickInterval = null; }
+        if (cdnTickInterval) { clearInterval(cdnTickInterval); cdnTickInterval = null; }
         return;
     }
     masterGain.gain.setTargetAtTime(0.3, audioCtx.currentTime, 0.1);
@@ -637,11 +554,11 @@ function applyGains() {
         if (cn) updateGainForChannel(id);
     });
 
-    if (masterMode === 'goog') {
-        startGoogLoop();
-        if (vuBar) vuBar.style.background = 'var(--goog-color)';
+    if (masterMode === 'cdn') {
+        startCdnLoop();
+        if (vuBar) vuBar.style.background = 'var(--cdn-color)';
     } else {
-        if (googTickInterval) { clearInterval(googTickInterval); googTickInterval = null; }
+        if (cdnTickInterval) { clearInterval(cdnTickInterval); cdnTickInterval = null; }
         if (vuBar) vuBar.style.background = 'var(--raw-color)';
     }
 }
@@ -657,10 +574,10 @@ function updateGainForChannel(id) {
     cn.chGain.gain.setTargetAtTime(amp, audioCtx.currentTime, 0.12);
 }
 
-/* ── SYSTEM MATRIX HARD CONTROLS ── */
+/* ── INTERFACE CONTROLS ── */
 function setMaster(mode) {
     masterMode = mode;
-    ['raw','goog','mute'].forEach(k => {
+    ['raw','cdn','mute'].forEach(k => {
         const el = document.getElementById(`m-${k}`);
         if (el) {
             el.textContent = k === mode ? '(•)' : '( )';
@@ -668,7 +585,7 @@ function setMaster(mode) {
         }
     });
     applyGains();
-    log('SYS', `SWITCHBOARD MATRIX COLLISION ROUTE: ${mode.toUpperCase()}`);
+    log('SYS', `MASTER DIRECTION DELEGATED: ${mode.toUpperCase()}`);
 }
 
 function toggleChannel(id, type) {
@@ -680,21 +597,21 @@ function toggleChannel(id, type) {
     }
     if (audioCtx) {
         applyGains();
-        if (type === 'goog' && MUSEUMS[id].goog) fetchGoogBytes(id);
+        if (type === 'cdn' && MUSEUMS[id].cdn) fetchCdnBytes(id);
     }
 }
 
 function globalOverride(action) {
     Object.entries(MUSEUMS).forEach(([id, m]) => {
-        if (action === 'all')  { m.raw = true; m.goog = true; }
-        if (action === 'mute') { m.raw = false; m.goog = false; }
-        ['raw','goog'].forEach(t => {
+        if (action === 'all')  { m.raw = true; m.cdn = true; }
+        if (action === 'mute') { m.raw = false; m.cdn = false; }
+        ['raw','cdn'].forEach(t => {
             const el = document.getElementById(`${id}-${t}`);
             if (el) { el.textContent = m[t] ? '(•)' : '( )'; el.className = 'dot ' + (m[t]?'on':'off'); }
         });
     });
     if (audioCtx) {
-        if (action === 'all' && masterMode === 'goog') Object.keys(MUSEUMS).forEach(id => fetchGoogBytes(id));
+        if (action === 'all' && masterMode === 'cdn') Object.keys(MUSEUMS).forEach(id => fetchCdnBytes(id));
         applyGains();
     }
 }
@@ -718,10 +635,11 @@ function gateOp(op) {
     }
 
     GATE_LAYOUTS[op]?.();
-    log('GATE', `OPERATOR ACTIVE: ${op.toUpperCase()} // CHASSIS GEOMETRY MUTATED`);
+    log('GATE', `MUTATION EXECUTED: ${op.toUpperCase()}`);
     if (audioCtx) playStringSound(op, 0.2);
 }
 
+/* ... keep previous layout mutation algorithms ... */
 function randomLayouts() {
     const blocks = [...document.querySelectorAll('.block')];
     const cols = [2,3,4,5,6];
@@ -750,6 +668,281 @@ function denseLayouts() {
     });
 }
 function reverseBlocks() {
-    if (!gridEl) return;
-    const blocks = [...gridEl.children];
-    blocks.reverse().forEach(b => gridEl
+    if (!matrixContainer) return;
+    const blocks = [...matrixContainer.children];
+    blocks.reverse().forEach(b => matrixContainer.appendChild(b));
+}
+function shuffleBlocks() {
+    if (!matrixContainer) return;
+    const blocks = [...matrixContainer.children];
+    const seed = performance.now() | 0;
+    for (let i = blocks.length - 1; i > 0; i--) {
+        const j = (seed * (i+1) * 2654435761 >>> 0) % (i+1);
+        matrixContainer.appendChild(blocks[j]);
+        blocks.splice(j, 1);
+    }
+}
+function tallLayouts() {
+    document.querySelectorAll('.block').forEach((b,i) => {
+        b.style.gridColumn = `span ${(i%4===0)?6:2}`;
+        b.style.gridRow    = `span ${(i%4===0)?1:3}`;
+    });
+}
+
+/* ─── PHONETIC BYTE TRANSLATION LAYER ─── */
+function playStringSound(str, globalGain = 1.0) {
+    if (!audioCtx || masterMode === 'mute') return;
+
+    const chars  = str.split('');
+    let timeHead = audioCtx.currentTime + 0.01;
+
+    const clusters = new Set();
+    let m;
+    const re = CONSONANT_CLUSTER_RE;
+    re.lastIndex = 0;
+    while ((m = re.exec(str)) !== null) {
+        for (let i = m.index; i < m.index + m[0].length; i++) clusters.add(i);
+    }
+
+    chars.forEach((ch, idx) => {
+        const code = ch.charCodeAt(0);
+        if (code < 32) return;
+
+        if (ch === ',' || ch === ' ') {
+            timeHead += 0.025;
+            return;
+        }
+
+        const freq = 80 + ((code - 32) / 95) * 2720;
+        const isVowel    = VOWELS.has(ch);
+        const isCluster  = clusters.has(idx);
+        const duration   = isVowel ? 0.09 : isCluster ? 0.03 : 0.05;
+        const amp        = (isCluster ? 0.06 : isVowel ? 0.02 : 0.035) * globalGain;
+
+        const osc = audioCtx.createOscillator();
+        osc.type  = isCluster ? 'square' : 'sine';
+        osc.frequency.setValueAtTime(freq, timeHead);
+
+        const env = audioCtx.createGain();
+        env.gain.setValueAtTime(amp, timeHead);
+        env.gain.exponentialRampToValueAtTime(0.0001, timeHead + duration);
+
+        osc.connect(env);
+        env.connect(masterGain);
+        osc.start(timeHead);
+        osc.stop(timeHead + duration + 0.005);
+
+        timeHead += duration * 0.7;
+    });
+
+    log('LING', `TRANSDUCED SEGMENT: ${chars.length} BYTES`);
+}
+
+function mutateBlock(el) {
+    if (!matrixContainer) return;
+    const txt = el.getAttribute('data-text') || '';
+    const blocks = [...matrixContainer.children];
+    const pivot  = txt.length % blocks.length;
+    const before = blocks.slice(0, pivot);
+    const after  = blocks.slice(pivot);
+    [...after, ...before].forEach(b => matrixContainer.appendChild(b));
+
+    if (audioCtx) playStringSound(txt);
+
+    log('SWIFT', `COLLISION TRANSDUCTION EXECUTION // BYTES: ${txt.length}`);
+}
+
+/* ─── SECURE DOUBLE QUOTE ESCAPED CSV PARSER ─── */
+function splitRowCells(rawLineText) {
+    const results = [];
+    let fieldBuffer = "";
+    let insideQuoteBlock = false;
+
+    for (let i = 0; i < rawLineText.length; i++) {
+        const character = rawLineText[i];
+        if (character === '"') {
+            insideQuoteBlock = !insideQuoteBlock;
+        } else if (character === ',' && !insideQuoteBlock) {
+            results.push(fieldBuffer.trim());
+            fieldBuffer = "";
+        } else {
+            fieldBuffer += character;
+        }
+    }
+    results.push(fieldBuffer.trim());
+    return results;
+}
+
+/* ════════════════════════ REPOSITORY METADATA COMPILER ════════════════════════ */
+async function loadVCS() {
+    try {
+        const response = await fetch('data.vcs');
+        rawCsvText = await response.text();
+        
+        const rows = rawCsvText.replace(/\r/g, "").trim().split('\n');
+        const transactions = rows.slice(1);
+
+        const entries = transactions.map(line => {
+            const columns = splitRowCells(line);
+            return {
+                year:     (columns[0] || '').trim(),
+                mode:     (columns[1] || '').trim(),
+                entry:    (columns[2] || '').trim(),
+                context:  (columns[3] || '').trim(),
+                venue:    (columns[4] || '').trim(),
+                location: (columns[5] || '').trim(),
+                raw: line
+            };
+        }).filter(e => e.year);
+
+        const countEl = document.getElementById('ledger-count');
+        if (countEl) countEl.textContent = `${entries.length} RECORDS LOGGED`;
+        
+        buildGrid(entries);
+        buildResume(entries);
+        log('VCS', `EXTERNAL REPOSITORY STREAM CONNECTED — INGESTED ${entries.length} TRANSACTIONS`);
+    } catch(e) {
+        log('VCS', 'CRITICAL DISCONNECT // data.vcs OFFLINE // MATRIX EMPTY');
+        const countEl = document.getElementById('ledger-count');
+        if (countEl) countEl.textContent = `0 RECORDS LOGGED`;
+    }
+}
+
+/* ════════════════════════ MATRIX CANVAS GENERATORS ════════════════════════ */
+const SPAN_PATTERNS = [
+    {col:'span 4',row:'span 2'},{col:'span 5',row:'span 3'},{col:'span 3',row:'span 2'},
+    {col:'span 5',row:'span 2'},{col:'span 4',row:'span 3'},{col:'span 3',row:'span 2'},
+    {col:'span 6',row:'span 2'},{col:'span 3',row:'span 3'},{col:'span 4',row:'span 2'},
+    {col:'span 5',row:'span 2'},{col:'span 3',row:'span 2'},{col:'span 4',row:'span 3'}
+];
+
+function catFromMode(raw) {
+    const m = raw.toLowerCase().trim();
+    if (['solo','group','screening','performance','other'].includes(m)) return 'shows';
+    if (['press','publication','publications','editorial','essay','writing'].includes(m)) return 'writing';
+    if (['film','video','16 mm','sound','multi','digital video','4k'].includes(m)) return 'time-based_media';
+    if (m.includes('collect')) return 'collection';
+    if (m.includes('founding')) return 'founding';
+    if (m === 'code') return 'code';
+    return 'plus';
+}
+
+function buildGrid(entries) {
+    if (!matrixContainer) return;
+    matrixContainer.innerHTML = entries.map((e, idx) => {
+        const cat   = catFromMode(e.mode);
+        const span  = SPAN_PATTERNS[idx % SPAN_PATTERNS.length];
+        const label = `${e.year}_${cat.toUpperCase()}_${e.entry.replace(/[^a-zA-Z0-9]/g,'-')}`;
+        const img   = `images/${e.year}_${cat}.jpg`;
+
+        return `<div class="block" 
+            style="grid-column:${span.col};grid-row:${span.row}"
+            data-mode="${cat}" data-text="${e.raw.replace(/"/g,"'")}"
+            onclick="mutateBlock(this)">
+            <canvas class="block-canvas"></canvas>
+            <img class="block-img" src="${img}" onload="this.classList.add('vis')" onerror="this.style.display='none'">
+            <div class="block-label">${label}</div>
+        </div>`;
+    }).join('');
+
+    initCanvases();
+    initBlockHovers();
+}
+
+function initCanvases() {
+    document.querySelectorAll('.block').forEach(block => {
+        const canvas = block.querySelector('.block-canvas');
+        if (!canvas) return;
+        const ctx2d  = canvas.getContext('2d');
+        const txt    = block.getAttribute('data-text') || '';
+
+        const draw = () => {
+            canvas.width  = block.clientWidth;
+            canvas.height = block.clientHeight;
+            ctx2d.fillStyle = 'rgba(128,128,128,0.10)';
+            ctx2d.font = '8px sans-serif';
+            const chars = txt.split('');
+            chars.forEach((ch, i) => {
+                const code = ch.charCodeAt(0);
+                const x = (code * 37 + i * 13) % Math.max(canvas.width - 40, 1);
+                const y = (code * 17 + i * 7)  % Math.max(canvas.height - 4, 1);
+                ctx2d.fillText(ch, x, y + 8);
+            });
+        };
+        draw();
+        window.addEventListener('resize', draw);
+    });
+}
+
+function initBlockHovers() {
+    document.querySelectorAll('.block').forEach(block => {
+        block.addEventListener('mouseenter', () => {
+            const labelNode = block.querySelector('.block-label');
+            if (labelNode) {
+                const label = labelNode.textContent;
+                log('BUS', `READ INTERCEPT NODE → ${label}`);
+            }
+        });
+    });
+}
+
+function buildResume(entries) {
+    if (!resumeEl) return;
+    resumeEl.innerHTML = entries.map(e => `
+        <div class="r-row">
+            <span class="r-year">${e.year}</span>
+            <span>${e.mode}</span>
+            <span>${e.entry}</span>
+            <span>${e.venue}</span>
+            <span>${e.location}</span>
+        </div>
+    `).join('');
+}
+
+/* ─── REAL TELEMETRY MONITOR ─── */
+function startVU() {
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    masterGain.connect(analyser);
+    const buf = new Uint8Array(analyser.frequencyBinCount);
+
+    function tick() {
+        if (masterMode === 'mute') {
+            if (vuBar) vuBar.style.width = '0%';
+        } else {
+            analyser.getByteFrequencyData(buf);
+            let sum = 0;
+            for (let i=0; i<buf.length; i++) sum += buf[i];
+            const avg = sum / buf.length / 255;
+            if (vuBar) vuBar.style.width = (avg * 100).toFixed(1) + '%';
+        }
+        vuRafId = requestAnimationFrame(tick);
+    }
+    tick();
+}
+
+function log(agent, detail, style = '') {
+    if (!ledgerContainer) return;
+    const ts = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const line = document.createElement('div');
+    line.className = 'ledger-line';
+    line.innerHTML = `<span class="ts">[${ts}]</span><span class="agent ${style}">${agent.padEnd(6)}</span><span class="detail">${detail}</span>`;
+    
+    ledgerContainer.insertBefore(line, ledgerContainer.firstChild);
+    
+    if (ledgerContainer.children.length > 6) {
+        ledgerContainer.removeChild(ledgerContainer.lastChild);
+    }
+}
+
+function toggleMode() {
+    document.body.classList.toggle('dark-mode');
+    log('SYS', 'POLARITY INVERSION EFFECTED');
+}
+
+/* ════════════════════════ INITIAL MODULE MOUNT ════════════════════════ */
+buildMuseumGrid();
+loadVCS();
+</script>
+</body>
+</html>
