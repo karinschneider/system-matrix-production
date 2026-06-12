@@ -281,7 +281,7 @@ const MUSEUMS = {
     sztuki:   { label: 'SZTUKI',   raw: true,  goog: false,
                 rawUrl:  'https://msl.org.pl/favicon.ico',
                 googUrl: 'https://www.google-analytics.com/analytics.js' },
-    momasp:   { label: 'MoMA SP',  raw: false, goog: true,
+    mamsp:   { label: 'MAM SP',  raw: false, goog: true,
                 rawUrl:  'https://mam.org.br/favicon.ico',
                 googUrl: 'https://www.googletagmanager.com/gtag/js' },
     moderno:  { label: 'MODERNO',  raw: false, goog: true,
@@ -292,8 +292,8 @@ const MUSEUMS = {
                 googUrl: 'https://www.google-analytics.com/ga.js' }
 };
  
-const BASE_FREQ  = { whitney:55, pompidou:82.4, sztuki:110, momasp:164.8, moderno:220, rijeka:329.6 };
-const WAVE_TYPE  = { whitney:'sine', pompidou:'triangle', sztuki:'sawtooth', momasp:'triangle', moderno:'sine', rijeka:'sawtooth' };
+const BASE_FREQ  = { whitney:55, pompidou:82.4, sztuki:110, mamsp:164.8, moderno:220, rijeka:329.6 };
+const WAVE_TYPE  = { whitney:'sine', pompidou:'triangle', sztuki:'sawtooth', mamsp:'triangle', moderno:'sine', rijeka:'sawtooth' };
  
 const VOWELS = new Set('aeiouAEIOU');
 const CONSONANT_RE = /[bcdfghjklmnpqrstvwxyz]{2,}/gi;
@@ -838,7 +838,7 @@ function demoVCS() {
     return `year,mode,entry,context,venue,location
 2024,collection,Structural Residue,Permanent Collection,Whitney Museum,New York
 2023,group,Liquid Architectures,Group Exhibition,Centre Pompidou,Paris
-2022,film,Passage Through,Screening,MoMA SP,São Paulo
+2022,film,Passage Through,Screening,MAM SP,São Paulo
 2021,solo,Index of Surfaces,Solo Show,Muzeum Sztuki,Łódź
 2020,performance,Threshold Frequency,Performance,Museo Moderno,Buenos Aires
 2019,group,Carrier Signal,Group Exhibition,MMSU,Rijeka
