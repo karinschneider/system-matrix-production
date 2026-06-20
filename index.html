@@ -324,7 +324,6 @@
     <div style="display:flex; gap:8px; align-items:center;">
         <span id="live-count" style="font-size:9px; letter-spacing:1px; opacity:0.4; font-family:monospace;"></span>
         <button class="btn admin-only" id="profile-btn" onclick="openProfileForm()">+ CREATE PROFILE</button>
-        <button class="btn admin-only" id="upload-btn" onclick="toggleReg()" style="display:none !important;">+ UPLOAD</button>
         <button class="btn" onclick="toggleMode()">◐</button>
     </div>
 </div>
@@ -440,7 +439,7 @@
             <textarea id="materials" placeholder="Notes / description (optional)"></textarea>
 
             <div style="grid-column:span 2;">
-                <label>File path or URL (Backblaze / Dropbox / direct link)</label>
+                <label>File link (optional — only if not uploading a file below)</label>
                 <input type="text" id="manualPath" placeholder="media/video.mp4 or https://...">
             </div>
 
