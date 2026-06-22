@@ -697,6 +697,7 @@ function renderCluster() {
         shape.className = geo.cls;
         shape.style.width='100%'; shape.style.height='100%'; shape.style.position='relative';
         if (geo.type==='circle') shape.style.borderRadius='50%';
+        if (currentMaker && currentMaker.role === 'curator') shape.style.borderColor = 'var(--yellow)';
 
         // Title CENTERED
         const titleEl = document.createElement('div');
@@ -765,34 +766,7 @@ function shapeGeometry(mode) {
 }
 
 /* ── DRAG ── */
-function makeDraggableIdentity(el, id) {
-    let down=false,sx,sy,ox,oy;
-    el.addEventListener('mousedown',(e)=>{
-        if(e.target.tagName==='BUTTON')return;
-        down=true;el._dragged=false;
-        sx=e.clientX;sy=e.clientY;
-        ox=parseFloat(el.style.left);oy=parseFloat(el.style.top);
-        e.preventDefault();
-    });
-    window.addEventListener('mousemove',(e)=>{
-        if(!down)return;
-        const dx=e.clientX-sx,dy=e.clientY-sy;
-        if(Math.abs(dx)>4||Math.abs(dy)>4)el._dragged=true;
-        el.style.left=(ox+dx)+'px';el.style.top=(oy+dy)+'px';
-        makerPos[id]={x:ox+dx,y:oy+dy};
-    });
-    window.addEventListener('mouseup',()=>{down=false;});
-}
 
-function makeDraggableWork(el, id) {
-    let down=false,sx,sy,ox,oy;
-    el.addEventListener('mousedown',(e)=>{
-        if(e.target.tagName==='BUTTON')return;
-        down=true;el._dragged=false;
-        sx=e.clientX;sy=e.clientY;
-        ox=parseFloat(el.style.left);oy=parseFloat(el.style.top);
-        e.preventDefault();
-    });
     window.addEventListener('mousemove',(e)=>{
         if(!down)return;
         const dx=e.clientX-sx,dy=e.clientY-sy;
