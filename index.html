@@ -778,7 +778,7 @@ function shapeGeometry(mode) {
 
     el.addEventListener('touchstart',(e)=>{ if(e.target.tagName==='BUTTON')return;const t=e.touches[0];start(t.clientX,t.clientY);e.preventDefault(); },{passive:false});
     el.addEventListener('touchmove',(e)=>{ const t=e.touches[0];move(t.clientX,t.clientY);e.preventDefault(); },{passive:false});
-    el.addEventListener('touchend', end);
+    el.addEventListener('touchend',(e)=>{ if(!el._dragged){ el.click(); } end(); });
 }
 
 function makeDraggableWork(el, id) {
