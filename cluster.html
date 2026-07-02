@@ -264,6 +264,7 @@
     <div style="font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.15);">2026 © commons-on-demand.com</div>
 </div>
 
+<!-- CLUSTER VIEW -->
 <div id="cluster-view">
     <div id="cluster-header">
         <div>
@@ -281,6 +282,7 @@
     <div id="cluster-canvas"></div>
 </div>
 
+<!-- SIGN IN OVERLAY -->
 <div id="signin-section" class="overlay" onclick="if(event.target.id==='signin-section')closeSignIn()">
     <div class="auth-container" onclick="event.stopPropagation()">
         <div class="form-close" onclick="closeSignIn()">×</div>
@@ -299,6 +301,7 @@
     </div>
 </div>
 
+<!-- SIGN UP OVERLAY -->
 <div id="signup-section" class="overlay" onclick="if(event.target.id==='signup-section')closeSignUp()">
     <div class="auth-container" onclick="event.stopPropagation()">
         <div class="form-close" onclick="closeSignUp()">×</div>
@@ -352,6 +355,7 @@
     </div>
 </div>
 
+<!-- INVITE PANEL (admin only) -->
 <div id="invite-section" class="overlay" onclick="if(event.target.id==='invite-section')closeInvitePanel()">
     <div class="auth-container" onclick="event.stopPropagation()">
         <div class="form-close" onclick="closeInvitePanel()">×</div>
@@ -364,6 +368,7 @@
 </div>
 
 
+<!-- PROFILE OVERLAY -->
 <div id="profile-section" class="overlay" onclick="if(event.target.id==='profile-section')closeProfileForm()">
     <div class="form-container" onclick="event.stopPropagation()">
         <div class="form-close" onclick="closeProfileForm()">×</div>
@@ -405,7 +410,8 @@
             <button type="button" class="btn" onclick="closeProfileForm()" style="grid-column:span 2;border:none;opacity:0.3;font-size:10px;">CANCEL</button>
         </form>
 
-                <div id="profile-changepw-section" style="display:none; margin-top:24px; padding-top:20px; border-top:1px solid var(--border);">
+        <!-- CHANGE PASSWORD — shown only when editing your own profile -->
+        <div id="profile-changepw-section" style="display:none; margin-top:24px; padding-top:20px; border-top:1px solid var(--border);">
             <div class="auth-title" style="margin-bottom:16px;">Change Password</div>
             <div class="auth-error" id="change-password-error"></div>
             <div class="auth-field">
@@ -427,6 +433,7 @@
     </div>
 </div>
 
+<!-- START CLUSTER OVERLAY -->
 <div id="cluster-form-section" class="overlay" onclick="if(event.target.id==='cluster-form-section')closeClusterForm()">
     <div class="form-container" style="max-width:420px;" onclick="event.stopPropagation()">
         <div class="form-close" onclick="closeClusterForm()">×</div>
@@ -443,6 +450,7 @@
     </div>
 </div>
 
+<!-- WORK UPLOAD OVERLAY -->
 <div id="reg-section" onclick="handleBgClick(event)">
     <div class="form-container" onclick="event.stopPropagation()">
         <div class="form-close" onclick="closeUploadForm()">×</div>
@@ -516,6 +524,7 @@
     </div>
 </div>
 
+<!-- VIEWING ROOM -->
 <div id="viewing-room">
     <div class="view-controls">
         <div class="bg-toggle black" onclick="setViewBg('#000000')"></div>
@@ -526,6 +535,7 @@
     <div id="media-container"></div>
 </div>
 
+<!-- TEXT OVERLAY -->
 <div id="text-overlay">
     <div id="text-close" onclick="closeText()">×</div>
     <div class="text-overlay-inner">
@@ -535,6 +545,7 @@
     </div>
 </div>
 
+<!-- INVITE OVERLAY -->
 <div id="invite-overlay" onclick="closeInvite(event)">
     <div class="invite-box" onclick="event.stopPropagation()">
         <div class="form-close" onclick="document.getElementById('invite-overlay').style.display='none'">×</div>
@@ -673,8 +684,10 @@ function signOut() {
 
 function applyAuthUI() {
     const signedIn = !!authToken;
+    // STEP 1: SIGN IN button permanently hidden — the COMMONS ON DEMAND title is the only entry point
     document.getElementById('auth-btn').style.display    = 'none';
     document.getElementById('signout-btn').style.display = signedIn ? 'inline-block' : 'none';
+    // STEP 9: change-pw-btn reference removed — the PASSWORD button no longer exists in the header
     document.getElementById('user-display').textContent  = signedIn ? (isAdmin ? 'ADMIN' : 'ARTIST') : '';
 
     if (isAdmin) {
@@ -911,6 +924,9 @@ function renderMain() {
 
         wrap.onclick = () => {
             if (wrap._dragged) { wrap._dragged=false; return; }
+            // Gate applies to everyone except the owner/admin.
+            // (NOTE: still client-side and bypassable until the Worker stops
+            // serving accessCode in /api/data — see Phase 0 server tasks.)
             if (!canEdit(maker.id) && maker.accessCode && maker.accessCode !== '') {
                 const pass = prompt('Enter access code:');
                 if (!pass || pass.trim() !== maker.accessCode.trim()) { alert('INVALID CODE'); return; }
@@ -987,8 +1003,17 @@ function renderCluster() {
         wrap.className = 'shape-wrap';
         wrap.dataset.id = item.id;
         if (!workPos[item.id]) {
-            const cx = window.innerWidth/2-140, cy = window.innerHeight/2-100, spread = 220;
-            workPos[item.id] = { x: cx+(i%3-1)*spread+(i*47)%80, y: cy+Math.floor(i/3-0.5)*spread+(i*31)%60 };
+            // Scale the layout grid to the actual screen and clamp into view —
+            // the old fixed 220px spread pushed the first work to a negative x
+            // on phones, rendering it off-screen (invisible single-work clusters).
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const spreadX = Math.min(220, Math.floor(vw / 3));
+            const spreadY = Math.min(220, Math.floor(vh / 3));
+            let x = vw/2 - geo.w/2 + (i%3-1)*spreadX + (i*47)%80;
+            let y = vh/2 - geo.h/2 + Math.floor(i/3-0.5)*spreadY + (i*31)%60;
+            x = Math.max(8,  Math.min(x, vw - geo.w - 8));
+            y = Math.max(70, Math.min(y, vh - geo.h - 50));
+            workPos[item.id] = { x, y };
         }
         const pos = workPos[item.id];
         wrap.style.left=pos.x+'px'; wrap.style.top=pos.y+'px';
@@ -1110,6 +1135,9 @@ function makeDraggableWork(el, id)     { makeDraggable(el, id, workPos); }
 
 /* ── ACTIVATE / WATCH ── */
 function activateWork(item) {
+    // If a code is set, it gates the work regardless of mode —
+    // previously free WWW/TEXT/SLIDES skipped the check entirely.
+    // Owner and admin skip their own gates.
     if (!canEdit(item.makerId) && item.accessCode && item.accessCode !== '') {
         const pass = prompt('Enter access code to watch:');
         if (!pass || pass.trim() !== item.accessCode.trim()) { alert('INVALID_CODE // ACCESS_DENIED'); return; }
