@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>COMMONS ON DEMAND</title>
+    <title>COMMONS ON DEMAND — BETA</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -56,8 +56,8 @@
         /* TERMINAL FEED */
         #feed {
             position: fixed;
-            top: 0; right: 0;
-            width: 320px; height: 100vh;
+            top: 0; left: 0;
+            width: 300px; height: 100vh;
             padding: 70px 24px 40px;
             display: flex; flex-direction: column; justify-content: flex-end;
             pointer-events: none;
@@ -99,6 +99,7 @@
             display: flex; justify-content: space-between; align-items: center;
             z-index: 100; pointer-events: none;
         }
+        #bottom a { pointer-events: auto; }
         #console-msg {
             font-family: monospace; font-size: 9px;
             color: rgba(60,100,255,0.6); letter-spacing: 1px;
@@ -107,7 +108,8 @@
         #console-msg:hover { color: rgba(60,100,255,1); }
         body.light-mode #console-msg { color: rgba(60,100,255,0.7); }
         body.light-mode #console-msg:hover { color: rgba(60,100,255,1); }
-        #enter-link {
+        #enter-link { position: absolute; left: 50%; transform: translateX(-50%); }
+        #enter-link-x {
             font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
             color: rgba(255,255,255,0.3); text-decoration: none;
             pointer-events: auto;
@@ -128,10 +130,11 @@
         }
 
         /* MOBILE */
+        @media (max-width: 700px) { .cp-t { display: none; } }
         @media (max-width: 700px) {
             /* Narrow right column instead of full-width overlay —
                full-width feed lines were eating taps meant for globe dots */
-            #feed { width: 190px; padding: 70px 12px 120px; }
+            #feed { width: 170px; padding: 70px 10px 120px; }
             .feed-line { font-size: 8px; }
         }
     </style>
@@ -139,7 +142,7 @@
 <body>
 
 <div id="header">
-    <a class="title" href="index.html">COMMONS ON DEMAND</a>
+    <a class="title" href="index.html">COMMONS ON DEMAND <span style="font-size:8px;letter-spacing:2px;opacity:0.5;vertical-align:super;">BETA</span></a>
     <div style="display:flex;gap:8px;align-items:center;">
         <span id="live-count"></span>
         <button class="btn" onclick="toggleMode()">◐</button>
@@ -155,13 +158,14 @@
 <div id="bottom">
     <a id="console-msg" href="economy.html">THE EARTH IS OUR COMMONS</a>
     <a id="enter-link" href="cluster.html">ENTER →</a>
-    <div style="font-size:12px;letter-spacing:7px;color:rgba(255,255,255,0.15);">2026 © commons-on-demand.com</div>
+    <a href="mailto:2026@commons-on-demand.com" style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.25);text-decoration:none;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
 </div>
 
 <div id="tooltip"></div>
 
+<script src="commons-cities.js"></script>
 <script>
-const WORKER_URL = 'https://commons-on-demand-api.pb6w4bwg2n.workers.dev';
+const WORKER_URL = 'https://api.commons-on-demand.com';
 const CLUSTER_URL = 'cluster.html';
 
 let makers   = [];
@@ -173,7 +177,10 @@ let cdTimers = {};
 // Globe drag state
 let isDragging   = false;
 let dragStartX   = 0;
+let dragStartY   = 0;
 let dragRotStart = 0;
+let tilt         = 0;   // vertical rotation (deg), clamped
+let tiltStart    = 0;
 let lastDragX    = 0;
 let dragVelocity = 0;
 let autoRotate   = true;
@@ -184,21 +191,32 @@ const ctx    = canvas.getContext('2d');
 let W, H, cx, cy, R;
 
 function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+    // Match the canvas buffer to its REAL on-screen size — the old 100vw/100vh
+    // CSS stretched the sphere on mobile (URL bar makes 100vh ≠ innerHeight)
+    W = window.innerWidth;
+    H = window.innerHeight;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    canvas.width  = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     cx = W / 2;
     cy = H / 2;
     R  = Math.min(W, H) * 0.38;
 }
 resize();
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 250));
 
 /* ── GLOBE DRAG ── */
 canvas.addEventListener('mousedown', (e) => {
     isDragging   = true;
     autoRotate   = false;
     dragStartX   = e.clientX;
+    dragStartY   = e.clientY;
     dragRotStart = rot;
+    tiltStart    = tilt;
     lastDragX    = e.clientX;
     dragVelocity = 0;
     canvas.classList.add('dragging');
@@ -210,6 +228,8 @@ window.addEventListener('mousemove', (e) => {
     lastDragX = e.clientX;
     const totalDx = e.clientX - dragStartX;
     rot = dragRotStart + totalDx * 0.3;
+    // Free 3D: vertical drag tilts the globe (clamped so it can't flip)
+    tilt = Math.max(-80, Math.min(80, tiltStart + (e.clientY - dragStartY) * 0.3));
 });
 window.addEventListener('mouseup', () => {
     if (!isDragging) return;
@@ -225,7 +245,9 @@ canvas.addEventListener('touchstart', (e) => {
     isDragging   = true;
     autoRotate   = false;
     dragStartX   = t.clientX;
+    dragStartY   = t.clientY;
     dragRotStart = rot;
+    tiltStart    = tilt;
     lastDragX    = t.clientX;
     dragVelocity = 0;
 }, { passive: true });
@@ -237,6 +259,7 @@ canvas.addEventListener('touchmove', (e) => {
     lastDragX = t.clientX;
     const totalDx = t.clientX - dragStartX;
     rot = dragRotStart + totalDx * 0.3;
+    tilt = Math.max(-80, Math.min(80, tiltStart + (t.clientY - dragStartY) * 0.3));
 }, { passive: true });
 canvas.addEventListener('touchend', () => {
     isDragging = false;
@@ -244,61 +267,7 @@ canvas.addEventListener('touchend', () => {
 });
 
 /* ── CITY COORDINATES ── */
-const CITY_COORDS = {
-    'new york':        { lat: 40.71,  lon: -74.01 },
-    'new york city':   { lat: 40.71,  lon: -74.01 },
-    'nyc':             { lat: 40.71,  lon: -74.01 },
-    'paris':           { lat: 48.85,  lon:   2.35 },
-    'rio de janeiro':  { lat: -22.90, lon: -43.17 },
-    'rio':             { lat: -22.90, lon: -43.17 },
-    'vienna':          { lat: 48.21,  lon:  16.37 },
-    'london':          { lat: 51.51,  lon:  -0.13 },
-    'berlin':          { lat: 52.52,  lon:  13.40 },
-    'tokyo':           { lat: 35.68,  lon: 139.69 },
-    'japan':           { lat: 36.20,  lon: 138.25 },
-    'beijing':         { lat: 39.91,  lon: 116.39 },
-    'shanghai':        { lat: 31.23,  lon: 121.47 },
-    'los angeles':     { lat: 34.05,  lon: -118.24 },
-    'la':              { lat: 34.05,  lon: -118.24 },
-    'chicago':         { lat: 41.88,  lon: -87.63 },
-    'san francisco':   { lat: 37.77,  lon: -122.42 },
-    'sf':              { lat: 37.77,  lon: -122.42 },
-    'toronto':         { lat: 43.65,  lon: -79.38 },
-    'montreal':        { lat: 45.50,  lon: -73.57 },
-    'mexico city':     { lat: 19.43,  lon: -99.13 },
-    'buenos aires':    { lat: -34.60, lon: -58.38 },
-    'lagos':           { lat:  6.52,  lon:   3.38 },
-    'cairo':           { lat: 30.04,  lon:  31.24 },
-    'nairobi':         { lat: -1.29,  lon:  36.82 },
-    'mumbai':          { lat: 19.08,  lon:  72.88 },
-    'delhi':           { lat: 28.66,  lon:  77.23 },
-    'sydney':          { lat: -33.87, lon: 151.21 },
-    'seoul':           { lat: 37.57,  lon: 126.98 },
-    'amsterdam':       { lat: 52.37,  lon:   4.90 },
-    'barcelona':       { lat: 41.39,  lon:   2.15 },
-    'rome':            { lat: 41.90,  lon:  12.50 },
-    'madrid':          { lat: 40.42,  lon:  -3.70 },
-    'lisbon':          { lat: 38.72,  lon:  -9.14 },
-    'stockholm':       { lat: 59.33,  lon:  18.07 },
-    'oslo':            { lat: 59.91,  lon:  10.75 },
-    'copenhagen':      { lat: 55.68,  lon:  12.57 },
-    'zurich':          { lat: 47.38,  lon:   8.54 },
-    'brussels':        { lat: 50.85,  lon:   4.35 },
-    'prague':          { lat: 50.08,  lon:  14.44 },
-    'warsaw':          { lat: 52.23,  lon:  21.01 },
-    'athens':          { lat: 37.98,  lon:  23.73 },
-    'istanbul':        { lat: 41.01,  lon:  28.95 },
-    'moscow':          { lat: 55.75,  lon:  37.62 },
-    'dubai':           { lat: 25.20,  lon:  55.27 },
-    'singapore':       { lat:  1.35,  lon: 103.82 },
-    'hong kong':       { lat: 22.32,  lon: 114.17 },
-    'cape town':       { lat: -33.92, lon:  18.42 },
-    'johannesburg':    { lat: -26.20, lon:  28.04 },
-    'sao paulo':       { lat: -23.55, lon: -46.63 },
-    'bogota':          { lat:  4.71,  lon: -74.07 },
-    'lima':            { lat: -12.05, lon: -77.04 },
-    'santiago':        { lat: -33.45, lon: -70.67 },
-};
+/* CITY_COORDS now lives in commons-cities.js (shared with cluster.html) */
 
 function getCityCoords(cityName) {
     if (!cityName) return null;
@@ -322,7 +291,11 @@ function latLonTo3D(lat, lon, rotation) {
     const x3 = R * Math.sin(phi) * Math.cos(theta);
     const y3 = R * Math.cos(phi);
     const z3 = R * Math.sin(phi) * Math.sin(theta);
-    return { x: cx + x3, y: cy - y3, z: z3, visible: z3 > -R * 0.1 };
+    // Tilt: rotate around the horizontal screen axis for free 3D rotation
+    const t  = tilt * Math.PI / 180;
+    const y2 = y3 * Math.cos(t) - z3 * Math.sin(t);
+    const z2 = y3 * Math.sin(t) + z3 * Math.cos(t);
+    return { x: cx + x3, y: cy - y2, z: z2, visible: z2 > -R * 0.1 };
 }
 
 /* ── DRAW ── */
@@ -443,10 +416,10 @@ function animate() {
 }
 animate();
 
-/* ── CLICK ON GLOBE ── */
+/* ── CLICK ON GLOBE — BUG FIX 1 ── */
 canvas.addEventListener('click', (e) => {
     // Don't navigate if we just dragged
-    if (Math.abs(e.clientX - dragStartX) > 5) return;
+    if (Math.abs(e.clientX - dragStartX) > 5 || Math.abs(e.clientY - dragStartY) > 5) return;
 
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
@@ -501,7 +474,7 @@ canvas.addEventListener('mouseleave', () => {
     tooltip.style.display = 'none';
 });
 
-/* ── TERMINAL FEED ── */
+/* ── TERMINAL FEED — BUG FIX 1: routes to ?maker=id ── */
 function pad(n) { return String(n).padStart(2, '0'); }
 
 function buildFeed() {
@@ -527,6 +500,8 @@ function buildFeed() {
         const { maker, cluster } = item;
         const line = document.createElement('div');
         line.className = 'feed-line';
+        // SECURITY: textContent only — cluster titles / names / cities are
+        // artist-supplied and must never be parsed as HTML.
         const cityEl = document.createElement('span');
         cityEl.className = 'feed-city';
         cityEl.textContent = (maker.city || 'UNKNOWN').toUpperCase();

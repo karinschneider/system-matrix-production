@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>COMMONS ON DEMAND | 24H</title>
+    <title>COMMONS ON DEMAND | 24H — BETA</title>
     <style>
         :root { 
             --bg: #000000; 
@@ -24,8 +24,9 @@
         body.light-mode { 
             --bg: #ffffff; 
             --text: #000000; 
-            --accent: #333333;
-            --border: #dddddd;
+            --accent: #222222;
+            --grey: #555555;
+            --border: #cccccc;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
@@ -70,7 +71,13 @@
             animation: pulse-glow 2.4s ease-in-out infinite;
         }
         .ignition:hover { opacity: 1; }
-        #canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; }
+        /* The commons is BIGGER than the screen — you pan through it with
+           your fingers (Karin: physical experience, not just eyes) */
+        #canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: auto; -webkit-overflow-scrolling: touch; }
+        #space  { position: relative; width: 170vw; height: 160vh; }
+        @media (max-width: 700px) { #space { width: 220vw; height: 190vh; } }
+        .cp-t { }
+        @media (max-width: 700px) { .cp-t { display: none; } }
 
         /* IDENTITY SHAPES */
         .identity-wrap { position: absolute; cursor: pointer; user-select: none; }
@@ -103,6 +110,8 @@
         .shape-wrap.expired { opacity: 0.2; pointer-events: none; }
         .shape-video       { border: 1px solid var(--pink); background: transparent; }
         .shape-performance { border: 1px solid var(--pink); border-radius: 50%; background: transparent; }
+        .shape-online      { border: 2px solid var(--pink); border-radius: 50%; background: transparent; }
+        .shape-pay-online  { border: 2px solid var(--pink); border-radius: 50%; background: rgba(196,92,122,0.08); }
         .shape-sound       { border: 1px solid var(--grey); background: transparent; }
         .shape-www         { border: 1px solid var(--pink); background: transparent; }
         .shape-image       { border: 1px solid var(--grey); background: transparent; }
@@ -231,7 +240,7 @@
 <body>
 
 <div id="header">
-    <div class="title" onclick="openSignIn()">COMMONS ON DEMAND</div>
+    <div class="title" onclick="openSignIn()">COMMONS ON DEMAND <span style="font-size:8px;letter-spacing:2px;opacity:0.5;vertical-align:super;">BETA</span></div>
     <div style="display:flex; gap:8px; align-items:center;">
         <span id="live-count" style="font-size:9px; letter-spacing:1px; opacity:0.4; font-family:monospace;"></span>
         <span id="user-display" class="auth-user"></span>
@@ -244,7 +253,7 @@
     </div>
 </div>
 
-<div id="canvas"></div>
+<div id="canvas"><div id="space"></div></div>
 
 <div id="legend">
     <div class="legend-item"><div class="leg-circle"></div> maker</div>
@@ -268,13 +277,13 @@
 <div id="cluster-view">
     <div id="cluster-header">
         <div>
-            <div class="cluster-name" id="cluster-name-el">—</div>
-            <div class="cluster-title-display" id="cluster-title-el"></div>
-            <div class="cluster-sub" id="cluster-role-el">MAKER</div>
+            <div class="cluster-name" id="cluster-title-el">—</div>
+            <div class="cluster-title-display" id="cluster-name-el"></div>
+            <div class="cluster-sub" id="cluster-role-el"></div>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
             <span id="cluster-price" style="font-family:monospace;font-size:10px;letter-spacing:1px;"></span>
-            <button class="btn" id="buy-btn" onclick="buyCluster()" style="display:none;">GET CARD (TEST)</button>
+            <button class="btn" id="buy-btn" onclick="buyCluster()" style="display:none;">ACTIVATE C</button>
             <span id="cluster-cd" style="font-family:monospace;font-size:9px;opacity:0.4;letter-spacing:1px;"></span>
             <button class="btn" id="start-cluster-btn" onclick="openClusterForm()" style="display:none;">+ START CLUSTER</button>
             <button class="btn" id="upload-btn" onclick="openUploadForm()" style="display:none;">+ UPLOAD</button>
@@ -282,6 +291,33 @@
         </div>
     </div>
     <div id="cluster-canvas"></div>
+    <div id="cluster-lock" style="position:fixed;top:0;left:0;width:100vw;height:100vh;backdrop-filter:blur(14px);background:rgba(0,0,0,0.55);z-index:250;display:none;"></div>
+</div>
+
+<!-- ACTIVATE OVERLAY — two-light payment gate for a cluster's card -->
+<div id="activate-section" class="overlay" style="z-index:5500;">
+    <div class="form-container" style="max-width:420px;text-align:center;" onclick="event.stopPropagation()">
+        <div class="form-close" onclick="closeActivate()">×</div>
+        <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:16px;">Activate Cluster</div>
+        <div id="activate-card-holder" style="width:min(240px,70vw);margin:0 auto 20px;"></div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px;">
+            <button class="btn" id="activate-pay-btn" style="padding:12px;font-size:10px;">
+                ACTIVATE — <span id="activate-total-amt"></span>
+            </button>
+        </div>
+        <div id="activate-split-note" style="font-size:8px;letter-spacing:1px;opacity:0.5;margin-bottom:16px;"></div>
+        <div style="display:flex;justify-content:center;gap:24px;margin-bottom:16px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <div id="light-commons" style="width:12px;height:12px;border-radius:50%;background:#e8453c;transition:background 0.3s;"></div>
+                <div style="font-size:7px;letter-spacing:1px;opacity:0.5;">COMMONS</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <div id="light-creator" style="width:12px;height:12px;border-radius:50%;background:#e8453c;transition:background 0.3s;"></div>
+                <div style="font-size:7px;letter-spacing:1px;opacity:0.5;">CREATOR</div>
+            </div>
+        </div>
+        <div id="activate-status" style="font-size:8px;letter-spacing:1px;opacity:0.4;font-family:monospace;">WAITING FOR BOTH LIGHTS</div>
+    </div>
 </div>
 
 <!-- SIGN IN OVERLAY -->
@@ -323,7 +359,7 @@
         </div>
         <div class="auth-field">
             <label>City</label>
-            <input type="text" id="signup-city" placeholder="New York">
+            <input type="text" id="signup-city" list="city-list" placeholder="Start typing your city" autocomplete="off">
         </div>
         <div class="auth-field">
             <label>Role</label>
@@ -387,7 +423,7 @@
             </div>
             <div>
                 <label>City</label>
-                <input type="text" id="p-city" placeholder="New York">
+                <input type="text" id="p-city" list="city-list" placeholder="Start typing your city" autocomplete="off">
             </div>
             <div>
                 <label>Role</label>
@@ -408,6 +444,8 @@
                     <button type="button" class="btn" onclick="generateCode('p-code')" style="white-space:nowrap;">GENERATE</button>
                 </div>
             </div>
+            
+            
             <button type="submit" id="profile-submit" class="btn" style="grid-column:span 2;margin-top:8px;padding:10px;font-size:10px;">CREATE PROFILE</button>
             <button type="button" class="btn" onclick="closeProfileForm()" style="grid-column:span 2;border:none;opacity:0.3;font-size:10px;">CANCEL</button>
         </form>
@@ -476,6 +514,7 @@
                         <option value="SOUND">SOUND</option>
                         <option value="WWW">WWW</option>
                         <option value="SLIDES">SLIDES</option>
+                        <option value="ONLINE">ONLINE (live link)</option>
                         <option value="IMAGE">IMAGE</option>
                         <option value="TEXT">TEXT</option>
                     </optgroup>
@@ -484,6 +523,7 @@
                         <option value="PAY_SOUND">PAY — SOUND</option>
                         <option value="PAY_WWW">PAY — WWW</option>
                         <option value="PAY_SLIDES">PAY — SLIDES</option>
+                        <option value="PAY_ONLINE">PAY — ONLINE</option>
                         <option value="PAY_IMAGE">PAY — IMAGE</option>
                         <option value="PAY_TEXT">PAY — TEXT</option>
                     </optgroup>
@@ -565,6 +605,7 @@
     </div>
 </div>
 
+<script src="commons-cities.js"></script>
 <script>
 const WORKER_URL   = 'https://commons-on-demand-api.pb6w4bwg2n.workers.dev';
 const DATAROOM_URL = window.location.href.split('?')[0];
@@ -587,7 +628,7 @@ let currentCluster = null;
 let activeWork   = null;
 let lastInviteCode = '';
 
-const PAY_MODES = ['PAY_VIDEO','PAY_SOUND','PAY_WWW','PAY_SLIDES','PAY_IMAGE','PAY_TEXT'];
+const PAY_MODES = ['PAY_VIDEO','PAY_SOUND','PAY_WWW','PAY_SLIDES','PAY_IMAGE','PAY_TEXT','PAY_ONLINE'];
 
 /* A cluster only counts if its clock hasn't run out — the server prunes
    eventually, but the client must not treat expired clusters as live. */
@@ -635,6 +676,7 @@ async function doSignUp() {
     const name       = document.getElementById('signup-name').value.trim();
     const initials   = document.getElementById('signup-initials').value.trim().toUpperCase() || getInitials(name);
     const city       = document.getElementById('signup-city').value.trim();
+    if (city && !cityOnGlobe(city) && !confirm('City "' + city + '" is not on the globe map yet — you can register, but your dot won\'t appear until we add it. Continue?')) return;
     const role       = document.getElementById('signup-role').value;
     const accessCode = document.getElementById('signup-code').value.trim();
     const email      = document.getElementById('signup-email').value.trim();
@@ -792,16 +834,17 @@ function handleModeChange(mode) {
     const isText   = mode === 'TEXT'   || mode === 'PAY_TEXT';
     const isWWW    = mode === 'WWW'    || mode === 'PAY_WWW';
     const isSlides = mode === 'SLIDES' || mode === 'PAY_SLIDES';
+    const isOnline = mode === 'ONLINE' || mode === 'PAY_ONLINE';
     const isPaid   = PAY_MODES.includes(mode);
     const isPerf   = mode === 'PERFORMANCE';
-    const noFile   = isText || isWWW || isPerf;
+    const noFile   = isText || isWWW || isPerf || isOnline;
     document.getElementById('materials-label').textContent = isText ? 'Text content' : 'Notes / description (optional)';
     document.getElementById('materials').placeholder = isText ? 'Write your program note or text here...' : 'Notes / description (optional)';
     document.getElementById('materials').style.height = isText ? '200px' : '80px';
     document.getElementById('file-link-field').style.display   = noFile ? 'none' : '';
     document.getElementById('file-upload-field').style.display = noFile ? 'none' : '';
-    document.getElementById('url-link-field').style.display    = (isWWW || isSlides) ? '' : 'none';
-    document.getElementById('url-link-label').textContent = isSlides ? 'Presentation URL (optional)' : 'URL Link (for WWW entries)';
+    document.getElementById('url-link-field').style.display    = (isWWW || isSlides || isOnline) ? '' : 'none';
+    document.getElementById('url-link-label').textContent = isSlides ? 'Presentation URL (optional)' : (isOnline ? 'Live / stream URL' : 'URL Link (for WWW entries)');
     document.getElementById('linkUrl').placeholder = isSlides ? 'https://...' : 'https://yourproject.com';
     const codeLabel = document.getElementById('access-code-label');
     if (isPaid) { codeLabel.textContent = 'Access code (required for paid works)'; document.getElementById('accessCode').style.borderColor = 'var(--text)'; }
@@ -864,8 +907,19 @@ async function loadArchive() {
 }
 
 /* ── MAIN CANVAS ── */
+// Dimensions of the floating space (larger than the viewport)
+function spaceDims() {
+    const el = document.getElementById('space');
+    return { w: el.offsetWidth, h: el.offsetHeight };
+}
+function centerSpace() {
+    const cv = document.getElementById('canvas');
+    const { w, h } = spaceDims();
+    cv.scrollTo((w - window.innerWidth) / 2, Math.max(0, (h - window.innerHeight) / 3));
+}
 function renderMain() {
-    const canvas = document.getElementById('canvas');
+    setTimeout(centerSpace, 0);
+    const canvas = document.getElementById('space');
     Object.values(cdTimers).forEach(t => clearInterval(t));
     cdTimers = {};
     canvas.innerHTML = '';
@@ -883,8 +937,9 @@ function renderMain() {
 
         const { w: W, h: H } = identitySize(maker.role);
         if (!makerPos[maker.id]) {
-            const mxX = Math.max(60, window.innerWidth  - W - 100);
-            const mxY = Math.max(80, window.innerHeight - H - 100);
+            const S = spaceDims();
+            const mxX = Math.max(60, S.w - W - 100);
+            const mxY = Math.max(80, S.h - H - 150);
             makerPos[maker.id] = { x: 80 + (i * 157 + Math.floor(i * 0.6 * mxX)) % mxX, y: 80 + (i * 103 + Math.floor(i * 0.5 * mxY)) % mxY };
         }
         const pos = makerPos[maker.id];
@@ -968,9 +1023,17 @@ function openCluster(maker) {
     currentMaker = maker;
     currentCluster = liveClusterFor(maker.id);
     document.getElementById('cluster-view').style.display = 'block';
-    document.getElementById('cluster-name-el').textContent = maker.name || '—';
-    document.getElementById('cluster-title-el').textContent = currentCluster ? currentCluster.title.toUpperCase() : '';
-    document.getElementById('cluster-role-el').textContent = roleLabel(maker.role);
+    setTimeout(centerSpace, 0);
+    // Order: cluster title on top, author underneath, city below
+    const titleEl = document.getElementById('cluster-title-el');
+    titleEl.textContent = currentCluster ? currentCluster.title.toUpperCase() : (maker.name || '—').toUpperCase();
+    document.getElementById('cluster-name-el').textContent = currentCluster ? (maker.name || '') : roleLabel(maker.role);
+    document.getElementById('cluster-role-el').textContent = (maker.city || roleLabel(maker.role)).toUpperCase();
+    // Owner can rename the live cluster by clicking its title
+    if (canEdit(maker.id) && currentCluster) {
+        titleEl.style.cursor = 'pointer'; titleEl.title = 'Click to rename';
+        titleEl.onclick = editClusterTitle;
+    } else { titleEl.style.cursor = ''; titleEl.onclick = null; titleEl.title = ''; }
 
     const startBtn  = document.getElementById('start-cluster-btn');
     const uploadBtn = document.getElementById('upload-btn');
@@ -983,6 +1046,12 @@ function openCluster(maker) {
     const buyBtn  = document.getElementById('buy-btn');
     priceEl.textContent = currentCluster ? ('$' + ((currentCluster.total || 0) / 100).toFixed(2)) : '';
     buyBtn.style.display = currentCluster ? 'inline-block' : 'none';
+
+    // LOCK: visitors (not the creator/admin) can't interact with the canvas
+    // until both activation lights are green for this cluster.
+    const lockEl = document.getElementById('cluster-lock');
+    const needsLock = currentCluster && !canEditThis && !isActivated(currentCluster.id);
+    lockEl.style.display = needsLock ? 'block' : 'none';
 
     const cdEl = document.getElementById('cluster-cd');
     if (cdTimers['_cluster']) clearInterval(cdTimers['_cluster']);
@@ -1031,16 +1100,22 @@ function renderCluster() {
         wrap.className = 'shape-wrap';
         wrap.dataset.id = item.id;
         if (!workPos[item.id]) {
-            // Scale the layout grid to the actual screen and clamp into view —
-            // the old fixed 220px spread pushed the first work to a negative x
-            // on phones, rendering it off-screen (invisible single-work clusters).
-            const vw = window.innerWidth, vh = window.innerHeight;
-            const spreadX = Math.min(220, Math.floor(vw / 3));
-            const spreadY = Math.min(220, Math.floor(vh / 3));
-            let x = vw/2 - geo.w/2 + (i%3-1)*spreadX + (i*47)%80;
-            let y = vh/2 - geo.h/2 + Math.floor(i/3-0.5)*spreadY + (i*31)%60;
-            x = Math.max(8,  Math.min(x, vw - geo.w - 8));
-            y = Math.max(70, Math.min(y, vh - geo.h - 50));
+            const S = spaceDims();
+            let x, y;
+            if (item.posX !== null && item.posX !== undefined && item.posY !== null && item.posY !== undefined) {
+                // 1.7 — the artist's saved composition (% of the SPACE,
+                // so it scales between phone and desktop)
+                x = (item.posX / 100) * Math.max(0, S.w - geo.w);
+                y = 70 + (item.posY / 100) * Math.max(0, S.h - geo.h - 140);
+            } else {
+                // Automatic scatter around the center of the space
+                const spreadX = Math.min(260, Math.floor(S.w / 3.5));
+                const spreadY = Math.min(260, Math.floor(S.h / 3.5));
+                x = S.w/2 - geo.w/2 + (i%3-1)*spreadX + (i*47)%80;
+                y = S.h/2 - geo.h/2 + Math.floor(i/3-0.5)*spreadY + (i*31)%60;
+            }
+            x = Math.max(8,  Math.min(x, S.w - geo.w - 8));
+            y = Math.max(70, Math.min(y, S.h - geo.h - 20));
             workPos[item.id] = { x, y };
         }
         const pos = workPos[item.id];
@@ -1103,7 +1178,7 @@ function renderCluster() {
 
         wrap.appendChild(shape);
         wrap.onclick=()=>{ if(wrap._dragged){wrap._dragged=false;return;} activateWork(item); };
-        makeDraggableWork(wrap, item.id);
+        makeDraggableWork(wrap, item.id, canEdit(item.makerId));
         canvas.appendChild(wrap);
     });
 }
@@ -1113,6 +1188,8 @@ function shapeGeometry(mode) {
         case 'VIDEO':       return { w:280, h:180, type:'rect',   cls:'shape-video' };
         case 'PAY_VIDEO':   return { w:280, h:180, type:'rect',   cls:'shape-pay-video',   rounded:true };
         case 'PERFORMANCE': return { w:180, h:180, type:'circle', cls:'shape-performance' };
+        case 'ONLINE':      return { w:260, h:260, type:'circle', cls:'shape-online' };
+        case 'PAY_ONLINE':  return { w:260, h:260, type:'circle', cls:'shape-pay-online' };
         case 'SOUND':       return { w:120, h:120, type:'rect',   cls:'shape-sound' };
         case 'PAY_SOUND':   return { w:120, h:120, type:'rect',   cls:'shape-pay-sound',   rounded:true };
         case 'WWW':         return { w:300, h:70,  type:'rect',   cls:'shape-www' };
@@ -1144,22 +1221,45 @@ function dragMove(cx, cy) {
     d.posMap[d.id] = { x: d.ox + dx, y: d.oy + dy };
 }
 window.addEventListener('mousemove', (e) => dragMove(e.clientX, e.clientY));
-window.addEventListener('mouseup',   () => { activeDrag = null; });
+window.addEventListener('mouseup',   () => { endDrag(); });
 
-function makeDraggable(el, id, posMap) {
+// 1.7 — persist the composition: when the OWNER finishes dragging a work,
+// save its position as % of available space. Visitors can still drag for
+// play; their drags don't save.
+function endDrag() {
+    const d = activeDrag; activeDrag = null;
+    if (!d || !d.el._dragged || !d.save) return;
+    const geo = { w: d.el.offsetWidth, h: d.el.offsetHeight };
+    const S = spaceDims();
+    const px = Math.max(0, Math.min(100, (parseFloat(d.el.style.left) / Math.max(1, S.w - geo.w)) * 100));
+    const py = Math.max(0, Math.min(100, ((parseFloat(d.el.style.top) - 70) / Math.max(1, S.h - geo.h - 140)) * 100));
+    apiFetch('/api/works/' + encodeURIComponent(d.id) + '/position', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ x: px, y: py })
+    }).then(() => {
+        const it = archive.find(w => String(w.id) === String(d.id));
+        if (it) { it.posX = px; it.posY = py; }
+        log('LAYOUT SAVED');
+    }).catch((e) => {
+        // Surface failures — silent catch here hid a real bug once
+        if (e.message !== 'unauthorized') log('LAYOUT SAVE FAILED // ' + e.message);
+    });
+}
+
+function makeDraggable(el, id, posMap, save) {
     function start(cx, cy) {
         el._dragged = false;
-        activeDrag = { el, id, posMap, sx: cx, sy: cy,
+        activeDrag = { el, id, posMap, save: !!save, sx: cx, sy: cy,
                        ox: parseFloat(el.style.left), oy: parseFloat(el.style.top) };
     }
     el.addEventListener('mousedown', (e) => { if (e.target.tagName === 'BUTTON') return; start(e.clientX, e.clientY); e.preventDefault(); });
     el.addEventListener('touchstart', (e) => { if (e.target.tagName === 'BUTTON') return; const t = e.touches[0]; start(t.clientX, t.clientY); e.preventDefault(); }, { passive: false });
     el.addEventListener('touchmove',  (e) => { const t = e.touches[0]; dragMove(t.clientX, t.clientY); e.preventDefault(); }, { passive: false });
     // Fire a click on tap (when not dragged) so cards open on mobile
-    el.addEventListener('touchend',   () => { if (!el._dragged) { el.click(); } activeDrag = null; });
+    el.addEventListener('touchend',   () => { if (!el._dragged) { el.click(); } endDrag(); });
 }
-function makeDraggableIdentity(el, id) { makeDraggable(el, id, makerPos); }
-function makeDraggableWork(el, id)     { makeDraggable(el, id, workPos); }
+function makeDraggableIdentity(el, id) { makeDraggable(el, id, makerPos, false); }
+function makeDraggableWork(el, id, canSave) { makeDraggable(el, id, workPos, canSave); }
 
 /* ── ACTIVATE / WATCH ── */
 async function activateWork(item) {
@@ -1187,14 +1287,19 @@ function openRoom(item) {
     if (item.mode==='TEXT'||item.mode==='PAY_TEXT') { openText(item); return; }
     if ((item.mode==='WWW'||item.mode==='PAY_WWW') && item.linkUrl) { window.open(item.linkUrl,'_blank'); return; }
     if ((item.mode==='SLIDES'||item.mode==='PAY_SLIDES') && (item.linkUrl||item.manualPath)) {
-        const room=document.getElementById('viewing-room'), container=document.getElementById('media-container');
-        container.innerHTML=''; room.style.display='flex'; document.body.style.overflow='hidden';
-        const iframe=document.createElement('iframe'); iframe.src=item.linkUrl||item.manualPath;
-        iframe.style.cssText='width:100%;height:100%;border:none;'; iframe.setAttribute('allowfullscreen','');
-        container.appendChild(iframe); return;
+        // Most slide hosts refuse iframes — open directly instead
+        window.open(item.linkUrl||item.manualPath,'_blank'); return;
     }
+    if ((item.mode==='ONLINE'||item.mode==='PAY_ONLINE') && item.linkUrl) { window.open(item.linkUrl,'_blank'); return; }
     const room=document.getElementById('viewing-room'), container=document.getElementById('media-container');
     container.innerHTML=''; room.style.display='flex'; document.body.style.overflow='hidden';
+    setViewBg(themeBg());  // room background follows the site theme
+    const old=document.getElementById('room-caption'); if(old) old.remove();
+    if (item.materials) {  // upload "Notes / description" finally visible
+        const cap=document.createElement('div'); cap.id='room-caption';
+        cap.style.cssText='position:absolute;bottom:64px;left:10vw;right:10vw;text-align:center;font-family:monospace;font-size:10px;letter-spacing:1px;opacity:0.6;color:inherit;pointer-events:none;';
+        cap.textContent=item.materials; room.appendChild(cap);
+    }
     const cleanPath=(item.manualPath||'').split('?')[0].toLowerCase();
     const ext=cleanPath.split('.').pop();
     const isVideo=['mp4','mov','webm','avi','mkv','m4v','ogv'].includes(ext);
@@ -1213,8 +1318,9 @@ function openRoom(item) {
     }
 }
 
-function closeRoom() { document.getElementById('viewing-room').style.display='none'; document.getElementById('media-container').innerHTML=''; document.body.style.overflow='hidden'; setViewBg('#000000'); }
-function setViewBg(c){ document.getElementById('viewing-room').style.backgroundColor=c; }
+function closeRoom() { const r=document.getElementById('viewing-room'); r.style.display='none'; document.getElementById('media-container').innerHTML=''; const cap=document.getElementById('room-caption'); if(cap) cap.remove(); document.body.style.overflow='hidden'; setViewBg(themeBg()); }
+function setViewBg(c){ const r=document.getElementById('viewing-room'); r.style.backgroundColor=c; r.style.color = (c==='#ffffff') ? '#000' : '#fff'; }
+function themeBg(){ return document.body.classList.contains('light-mode') ? '#ffffff' : '#000000'; }
 function openText(item) { document.getElementById('text-title').textContent=item.title||''; document.getElementById('text-author').textContent=item.artist||''; document.getElementById('text-body').textContent=item.materials||''; document.getElementById('text-overlay').style.display='block'; document.getElementById('text-overlay').scrollTop=0; }
 function closeText() { document.getElementById('text-overlay').style.display='none'; }
 
@@ -1255,24 +1361,157 @@ document.getElementById('profileForm').onsubmit=async function(e){
 
 async function deleteMaker(id){ if(!confirm('Delete this profile and all its works?')) return; try { await apiFetch('/api/makers/'+id,{method:'DELETE'}); delete makerPos[id]; await loadArchive(); } catch(err){ if(err.message!=='unauthorized') alert('Could not delete: '+err.message); } }
 
-/* ── CLUSTER FORM ── */
+/* ── ACTIVATION (two-light payment gate) ──
+   BACKEND CONTRACT — not yet implemented on the Worker, spec'd here so it
+   can be built against exactly this shape:
+     POST /api/activate/:clusterId
+       -> { txId, commonsAmount (cents), creatorAmount (cents),
+            creatorPayoutMethod, creatorPayoutHandle }
+       Creates a pending activation record. commonsAmount/creatorAmount
+       are the cluster total split 10% / 90%.
+     GET  /api/activate/:txId/status
+       -> { commonsPaid: bool, creatorPaid: bool }
+       commonsPaid flips true when Dodo's webhook confirms the Commons
+       charge. creatorPaid flips true when the creator hits "Mark
+       Received" in their dashboard (POST /api/activate/:txId/confirm-creator,
+       auth'd as that maker).
+     GET  /api/card/:txId  (already exists) — returns the finished SVG once
+       both flags are true.
+*/
+let activatedClusters = new Set(JSON.parse(localStorage.getItem('cod_activated')||'[]'));
+function isActivated(clusterId){ return activatedClusters.has(String(clusterId)); }
+function markActivated(clusterId){ activatedClusters.add(String(clusterId)); localStorage.setItem('cod_activated', JSON.stringify([...activatedClusters])); }
+
+let activatePoll = null;
+let activateTx   = null;
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* Card SVG — same generator as the standalone card tool, fed live data */
+function activateCardSVG(cluster, author, city, tx){
+    const W=640,H=896;
+    function titleLines(t){
+        const words=t.toUpperCase().split(/\s+/); const lines=['']; let i=0;
+        for(const w of words){
+            if((lines[i]+' '+w).trim().length<=14) lines[i]=(lines[i]+' '+w).trim();
+            else if(i===0){ i=1; lines.push(w); }
+            else { lines[1]=(lines[1]+' '+w).trim(); }
+        }
+        if(lines[1] && lines[1].length>14) lines[1]=lines[1].slice(0,13)+'…';
+        return lines.filter(Boolean);
+    }
+    const lines=titleLines(cluster||'UNTITLED');
+    const titleSize=lines.some(l=>l.length>10)?58:72;
+    const titleY=380;
+    const title=lines.map((l,i)=>`<text x="320" y="${titleY+i*(titleSize+10)}" text-anchor="middle" fill="#fff" font-family="monospace" font-size="${titleSize}" letter-spacing="2">${esc(l)}</text>`).join('');
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">
+  <rect width="${W}" height="${H}" rx="28" fill="#000"/>
+  <rect x="14" y="14" width="${W-28}" height="${H-28}" rx="20" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.9"/>
+  <text x="320" y="90" text-anchor="middle" fill="#fff" font-family="monospace" font-size="16" letter-spacing="6" opacity="0.7">THE COMMONS</text>
+  <line x1="60" y1="120" x2="580" y2="120" stroke="#fff" stroke-width="0.5" opacity="0.3"/>
+  ${title}
+  <text x="320" y="${titleY+lines.length*(titleSize+10)+40}" text-anchor="middle" fill="#fff" font-family="monospace" font-size="24" letter-spacing="3">${esc((author||'').toUpperCase())}</text>
+  <text x="320" y="${titleY+lines.length*(titleSize+10)+84}" text-anchor="middle" fill="#fff" font-family="monospace" font-size="18" letter-spacing="4" opacity="0.7">${esc((city||'').toUpperCase())}</text>
+  <line x1="60" y1="${H-140}" x2="580" y2="${H-140}" stroke="#fff" stroke-width="0.5" opacity="0.3"/>
+  <text x="320" y="${H-96}" text-anchor="middle" fill="#fff" font-family="monospace" font-size="13" letter-spacing="2" opacity="0.8">${esc(tx)}</text>
+  <text x="320" y="${H-56}" text-anchor="middle" fill="#fff" font-family="monospace" font-size="11" letter-spacing="3" opacity="0.5">UNIQUE // 24H WITNESSED</text>
+</svg>`;
+}
+
+
 async function buyCluster(){
-    if(!currentCluster) return;
-    const btn=document.getElementById('buy-btn'); btn.disabled=true;
+    if(!currentCluster || !currentMaker) return;
     try {
-        // TEST checkout — Dodo hosted checkout replaces this call later
-        const res = await fetch(WORKER_URL+'/api/checkout/'+encodeURIComponent(currentCluster.id),{method:'POST'});
-        if(!res.ok) throw new Error('checkout failed');
-        const data = await res.json();
-        const cardRes = await fetch(WORKER_URL+'/api/card/'+encodeURIComponent(data.txId));
-        if(!cardRes.ok) throw new Error('card failed');
-        const svg = await cardRes.text();
-        const a=document.createElement('a');
-        a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
-        a.download='commons-card-'+data.txId+'.svg'; a.click();
-        log('CARD ISSUED // '+data.txId);
-    } catch(e){ alert('Checkout error: '+e.message); }
-    finally{ btn.disabled=false; }
+        const res = await fetch(WORKER_URL+'/api/activate/'+encodeURIComponent(currentCluster.id),{method:'POST'});
+        if(!res.ok) throw new Error('activation failed');
+        activateTx = await res.json();
+    } catch(e){
+        // Backend endpoint not live yet — fall back to a local placeholder
+        // so the flow can still be reviewed/designed against.
+        const total = currentCluster.total || 0;
+        activateTx = {
+            txId: 'TX-' + Date.now(),
+            totalAmount: total,
+            commonsAmount: Math.round(total * 0.10),
+            creatorAmount: total - Math.round(total * 0.10)
+        };
+    }
+    openActivateOverlay();
+}
+
+function openActivateOverlay(){
+    const tx = activateTx;
+    document.getElementById('activate-card-holder').innerHTML =
+        activateCardSVG(currentCluster.title, currentMaker.name, currentMaker.city, tx.txId);
+
+    const total = tx.totalAmount != null ? tx.totalAmount : (tx.commonsAmount + tx.creatorAmount);
+    document.getElementById('activate-total-amt').textContent = '$'+(total/100).toFixed(2);
+    document.getElementById('activate-split-note').textContent =
+        '$'+(tx.creatorAmount/100).toFixed(2)+' → ARTIST · $'+(tx.commonsAmount/100).toFixed(2)+' → COMMONS · SPLIT AT THE SOURCE';
+
+    document.getElementById('activate-pay-btn').onclick = () => {
+        // One payment; the provider splits it. Hosted checkout — keys never
+        // touch the client.
+        window.open(WORKER_URL+'/api/activate/'+tx.txId+'/checkout', '_blank');
+    };
+
+    document.getElementById('light-commons').style.background = '#e8453c';
+    document.getElementById('light-creator').style.background = '#e8453c';
+    document.getElementById('activate-status').textContent = 'WAITING FOR BOTH LIGHTS';
+    document.getElementById('activate-section').style.display = 'flex';
+
+    if (activatePoll) clearInterval(activatePoll);
+    activatePoll = setInterval(pollActivation, 3000);
+    pollActivation();
+}
+
+function closeActivate(){
+    document.getElementById('activate-section').style.display = 'none';
+    if (activatePoll) { clearInterval(activatePoll); activatePoll = null; }
+}
+
+async function pollActivation(){
+    if (!activateTx) return;
+    let status;
+    try {
+        const r = await fetch(WORKER_URL+'/api/activate/'+activateTx.txId+'/status');
+        if (!r.ok) throw new Error();
+        status = await r.json();
+    } catch(e){ return; } // backend not live yet — lights just stay red until it is
+
+    document.getElementById('light-commons').style.background = status.commonsPaid ? '#7FFF00' : '#e8453c';
+    document.getElementById('light-creator').style.background = status.creatorPaid ? '#7FFF00' : '#e8453c';
+
+    if (status.commonsPaid && status.creatorPaid) {
+        clearInterval(activatePoll); activatePoll = null;
+        document.getElementById('activate-status').textContent = 'ACTIVATED';
+        try {
+            const cardRes = await fetch(WORKER_URL+'/api/card/'+encodeURIComponent(activateTx.txId));
+            if (cardRes.ok) {
+                const svg = await cardRes.text();
+                const a=document.createElement('a');
+                a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
+                a.download='commons-card-'+activateTx.txId+'.svg'; a.click();
+            }
+        } catch(e){}
+        markActivated(currentCluster.id);
+        setTimeout(() => {
+            closeActivate();
+            document.getElementById('cluster-lock').style.display = 'none';
+        }, 1200);
+    } else {
+        document.getElementById('activate-status').textContent =
+            (status.commonsPaid ? 'COMMONS ✓' : 'COMMONS…') + '  /  ' + (status.creatorPaid ? 'CREATOR ✓' : 'CREATOR…');
+    }
+}
+async function editClusterTitle(){
+    if(!currentCluster) return;
+    const t = prompt('Cluster title:', currentCluster.title);
+    if(t===null || !t.trim()) return;
+    try {
+        await apiFetch('/api/clusters/'+encodeURIComponent(currentCluster.id),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:t.trim()})});
+        await loadArchive(); openCluster(currentMaker);
+    } catch(e){ if(e.message!=='unauthorized') alert('Rename failed: '+e.message); }
 }
 function openClusterForm(){ document.getElementById('clusterForm').reset(); document.getElementById('cluster-edit-id').value=''; document.getElementById('cluster-form-section').style.display='flex'; }
 function closeClusterForm(){ document.getElementById('cluster-form-section').style.display='none'; }
@@ -1359,5 +1598,7 @@ function getInitials(name){ if(!name)return'?'; return name.split(' ').map(p=>p[
 applyAuthUI();
 loadArchive();
 </script>
+<datalist id="city-list"></datalist>
+<a href="mailto:2026@commons-on-demand.com" style="position:fixed;bottom:8px;right:12px;font-size:8px;letter-spacing:2px;opacity:0.3;color:inherit;text-decoration:none;font-family:monospace;z-index:500;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
 </body>
 </html>
