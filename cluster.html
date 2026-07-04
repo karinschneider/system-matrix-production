@@ -235,14 +235,15 @@
             #text-body { font-size: 14px; }
             .text-overlay-inner { padding: 70px 0 60px; }
         }
-    </style>
+            @keyframes livepulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(0.7);} }
+</style>
 </head>
 <body>
 
 <div id="header">
     <div class="title" onclick="openSignIn()">COMMONS ON DEMAND <span style="font-size:8px;letter-spacing:2px;opacity:0.5;vertical-align:super;">BETA</span></div>
     <div style="display:flex; gap:8px; align-items:center;">
-        <span id="live-count" style="font-size:9px; letter-spacing:1px; opacity:0.4; font-family:monospace;"></span>
+        <span id="live-count" style="font-size:9px; letter-spacing:1px; opacity:0.6; font-family:monospace;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#7FFF00;margin-right:5px;animation:livepulse 1.6s infinite;"></span></span>
         <span id="user-display" class="auth-user"></span>
         <button class="btn admin-only" id="profile-btn" onclick="openProfileForm()">+ CREATE PROFILE</button>
         <button class="btn admin-only" onclick="openInvitePanel()">+ INVITE</button>
@@ -283,7 +284,7 @@
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
             <span id="cluster-price" style="font-family:monospace;font-size:10px;letter-spacing:1px;"></span>
-            <button class="btn" id="buy-btn" onclick="buyCluster()" style="display:none;">ACTIVATE C</button>
+            <button class="btn" id="buy-btn" onclick="buyCluster()" style="display:none;">WITNESS</button>
             <span id="cluster-cd" style="font-family:monospace;font-size:9px;opacity:0.4;letter-spacing:1px;"></span>
             <button class="btn" id="start-cluster-btn" onclick="openClusterForm()" style="display:none;">+ START CLUSTER</button>
             <button class="btn" id="upload-btn" onclick="openUploadForm()" style="display:none;">+ UPLOAD</button>
@@ -298,11 +299,20 @@
 <div id="activate-section" class="overlay" style="z-index:5500;">
     <div class="form-container" style="max-width:420px;text-align:center;" onclick="event.stopPropagation()">
         <div class="form-close" onclick="closeActivate()">×</div>
-        <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:16px;">Activate Cluster</div>
+        <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:16px;">Witness This Cluster</div>
         <div id="activate-card-holder" style="width:min(240px,70vw);margin:0 auto 20px;"></div>
+        <div style="font-size:8px;letter-spacing:2px;opacity:0.55;margin-bottom:10px;line-height:1.6;">
+            YOU RECEIVE A UNIQUE CARD — NUMBERED, TIED TO THIS 24H, YOURS FOREVER.<br>PAY WHAT YOU CAN. MINIMUM <span id="activate-floor"></span>.
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:6px;">
+            <span style="font-size:16px;opacity:0.6;">$</span>
+            <input id="activate-amount" type="number" step="0.01" min="0"
+                   style="width:110px;background:transparent;border:none;border-bottom:1px solid var(--accent);color:var(--text);font-size:22px;text-align:center;font-family:monospace;padding:4px;">
+        </div>
+        <div id="activate-amount-err" style="font-size:8px;letter-spacing:1px;color:#e8453c;min-height:12px;margin-bottom:8px;"></div>
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px;">
             <button class="btn" id="activate-pay-btn" style="padding:12px;font-size:10px;">
-                ACTIVATE — <span id="activate-total-amt"></span>
+                GET THE CARD
             </button>
         </div>
         <div id="activate-split-note" style="font-size:8px;letter-spacing:1px;opacity:0.5;margin-bottom:16px;"></div>
@@ -923,7 +933,8 @@ function renderMain() {
     Object.values(cdTimers).forEach(t => clearInterval(t));
     cdTimers = {};
     canvas.innerHTML = '';
-    document.getElementById('live-count').textContent = clusters.filter(c => c.expiresAt > Date.now()).length + ' LIVE';
+    { const el=document.getElementById('live-count'); const n=clusters.filter(c=>c.expiresAt>Date.now()).length;
+      el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#7FFF00;margin-right:5px;animation:livepulse 1.6s infinite;"></span>'+n+' LIVE'; }
 
     makers.forEach((maker, i) => {
         // CANVAS VISIBILITY: show a profile only if it has a live cluster,
@@ -1444,20 +1455,33 @@ function openActivateOverlay(){
     document.getElementById('activate-card-holder').innerHTML =
         activateCardSVG(currentCluster.title, currentMaker.name, currentMaker.city, tx.txId);
 
-    const total = tx.totalAmount != null ? tx.totalAmount : (tx.commonsAmount + tx.creatorAmount);
-    document.getElementById('activate-total-amt').textContent = '$'+(total/100).toFixed(2);
-    document.getElementById('activate-split-note').textContent =
-        '$'+(tx.creatorAmount/100).toFixed(2)+' → ARTIST · $'+(tx.commonsAmount/100).toFixed(2)+' → COMMONS · SPLIT AT THE SOURCE';
+    const floor = tx.totalAmount != null ? tx.totalAmount : (tx.commonsAmount + tx.creatorAmount);
+    const floorD = (floor/100).toFixed(2);
+    document.getElementById('activate-floor').textContent = '$'+floorD;
+    const amtEl = document.getElementById('activate-amount');
+    amtEl.value = floorD; amtEl.min = floorD;
+    const noteEl = document.getElementById('activate-split-note');
+    const errEl  = document.getElementById('activate-amount-err');
+    function refreshSplit(){
+        const cents = Math.round(parseFloat(amtEl.value||'0')*100);
+        if (isNaN(cents) || cents < floor) { errEl.textContent = 'MINIMUM $'+floorD; noteEl.textContent=''; return false; }
+        errEl.textContent = '';
+        const commons = Math.round(cents*0.10), artist = cents-commons;
+        noteEl.textContent = '$'+(artist/100).toFixed(2)+' → ARTIST · $'+(commons/100).toFixed(2)+' → COMMONS · SPLIT AT THE SOURCE';
+        return true;
+    }
+    amtEl.oninput = refreshSplit; refreshSplit();
 
     document.getElementById('activate-pay-btn').onclick = () => {
-        // One payment; the provider splits it. Hosted checkout — keys never
-        // touch the client.
-        window.open(WORKER_URL+'/api/activate/'+tx.txId+'/checkout', '_blank');
+        if (!refreshSplit()) return;
+        const cents = Math.round(parseFloat(amtEl.value||'0')*100);
+        // Pay-what-you-can; floor enforced again server-side. Hosted checkout.
+        window.open(WORKER_URL+'/api/activate/'+tx.txId+'/checkout?amount='+cents, '_blank');
     };
 
     document.getElementById('light-commons').style.background = '#e8453c';
     document.getElementById('light-creator').style.background = '#e8453c';
-    document.getElementById('activate-status').textContent = 'WAITING FOR BOTH LIGHTS';
+    document.getElementById('activate-status').textContent = 'AWAITING PAYMENT';
     document.getElementById('activate-section').style.display = 'flex';
 
     if (activatePoll) clearInterval(activatePoll);
@@ -1484,7 +1508,7 @@ async function pollActivation(){
 
     if (status.commonsPaid && status.creatorPaid) {
         clearInterval(activatePoll); activatePoll = null;
-        document.getElementById('activate-status').textContent = 'ACTIVATED';
+        document.getElementById('activate-status').textContent = 'WITNESSED';
         try {
             const cardRes = await fetch(WORKER_URL+'/api/card/'+encodeURIComponent(activateTx.txId));
             if (cardRes.ok) {
