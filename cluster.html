@@ -110,8 +110,8 @@
         .shape-wrap.expired { opacity: 0.2; pointer-events: none; }
         .shape-video       { border: 1px solid var(--pink); background: transparent; }
         .shape-performance { border: 1px solid var(--pink); border-radius: 50%; background: transparent; }
-        .shape-online      { border: 2px solid var(--pink); border-radius: 50%; background: transparent; }
-        .shape-pay-online  { border: 2px solid var(--pink); border-radius: 50%; background: rgba(196,92,122,0.08); }
+        .shape-online      { border: 1px solid var(--pink); border-radius: 4px; background: transparent; }
+        .shape-pay-online  { border: 1px solid var(--pink); border-radius: 4px; background: rgba(196,92,122,0.08); }
         .shape-sound       { border: 1px solid var(--grey); background: transparent; }
         .shape-www         { border: 1px solid var(--pink); background: transparent; }
         .shape-image       { border: 1px solid var(--grey); background: transparent; }
@@ -284,7 +284,7 @@
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
             <span id="cluster-price" style="font-family:monospace;font-size:10px;letter-spacing:1px;"></span>
-            <button class="btn" id="buy-btn" onclick="buyCluster()" style="display:none;">WITNESS</button>
+            <button class="btn" id="buy-btn" onclick="buyCluster()" style="display:none;">ACTIVATE</button>
             <span id="cluster-cd" style="font-family:monospace;font-size:9px;opacity:0.4;letter-spacing:1px;"></span>
             <button class="btn" id="start-cluster-btn" onclick="openClusterForm()" style="display:none;">+ START CLUSTER</button>
             <button class="btn" id="upload-btn" onclick="openUploadForm()" style="display:none;">+ UPLOAD</button>
@@ -299,10 +299,10 @@
 <div id="activate-section" class="overlay" style="z-index:5500;">
     <div class="form-container" style="max-width:420px;text-align:center;" onclick="event.stopPropagation()">
         <div class="form-close" onclick="closeActivate()">×</div>
-        <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:16px;">Witness This Cluster</div>
+        <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:16px;">Attend This Cluster</div>
         <div id="activate-card-holder" style="width:min(240px,70vw);margin:0 auto 20px;"></div>
         <div style="font-size:8px;letter-spacing:2px;opacity:0.55;margin-bottom:10px;line-height:1.6;">
-            YOU RECEIVE A UNIQUE CARD — NUMBERED, TIED TO THIS 24H, YOURS FOREVER.<br>PAY WHAT YOU CAN. MINIMUM <span id="activate-floor"></span>.
+            DOWNLOAD YOUR UNIQUE CARD — NUMBERED — TO EXPERIENCE IT.<br>PAY WHAT YOU CAN. MINIMUM <span id="activate-floor"></span>.
         </div>
         <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:6px;">
             <span style="font-size:16px;opacity:0.6;">$</span>
@@ -462,7 +462,7 @@
 
         <!-- CHANGE PASSWORD — shown only when editing your own profile -->
         <div id="profile-changepw-section" style="display:none; margin-top:24px; padding-top:20px; border-top:1px solid var(--border);">
-            <div class="auth-title" style="margin-bottom:16px;">Change Password</div>
+            <div class="auth-title" style="margin-bottom:16px;">Change Your Password (this signed-in account)</div>
             <div class="auth-error" id="change-password-error"></div>
             <div class="auth-field">
                 <label>Current Password</label>
@@ -570,7 +570,7 @@
                     <button type="button" class="btn" onclick="generateCode('accessCode')" style="white-space:nowrap;">GENERATE</button>
                 </div>
             </div>
-            <div style="grid-column:span 2;" id="file-upload-field">
+            <div style="grid-column:span 2;" id="file-upload-field"><div id="file-hint" style="font-size:8px;letter-spacing:1px;opacity:0.5;margin-bottom:6px;"></div>
                 <label>Upload file (auto-fills path)</label>
                 <input type="file" id="mediaFile" style="border:none; padding:0; font-size:10px;" onchange="handleFileSelection(this)">
             </div>
@@ -847,14 +847,16 @@ function handleModeChange(mode) {
     const isOnline = mode === 'ONLINE' || mode === 'PAY_ONLINE';
     const isPaid   = PAY_MODES.includes(mode);
     const isPerf   = mode === 'PERFORMANCE';
-    const noFile   = isText || isWWW || isPerf || isOnline;
+    const noFile   = isText || isWWW || isPerf || isOnline;  // slides CAN upload (PDF)
     document.getElementById('materials-label').textContent = isText ? 'Text content' : 'Notes / description (optional)';
     document.getElementById('materials').placeholder = isText ? 'Write your program note or text here...' : 'Notes / description (optional)';
     document.getElementById('materials').style.height = isText ? '200px' : '80px';
     document.getElementById('file-link-field').style.display   = noFile ? 'none' : '';
     document.getElementById('file-upload-field').style.display = noFile ? 'none' : '';
     document.getElementById('url-link-field').style.display    = (isWWW || isSlides || isOnline) ? '' : 'none';
-    document.getElementById('url-link-label').textContent = isSlides ? 'Presentation URL (optional)' : (isOnline ? 'Live / stream URL' : 'URL Link (for WWW entries)');
+    document.getElementById('url-link-label').textContent = isSlides ? 'Published presentation URL (optional)' : (isOnline ? 'Live / stream URL' : 'URL Link (for WWW entries)');
+    const fileHint = document.getElementById('file-hint');
+    if (fileHint) fileHint.textContent = isSlides ? 'SLIDES: upload a PDF — export from Keynote/PowerPoint as PDF first. Other slide formats are not supported.' : '';
     document.getElementById('linkUrl').placeholder = isSlides ? 'https://...' : 'https://yourproject.com';
     const codeLabel = document.getElementById('access-code-label');
     if (isPaid) { codeLabel.textContent = 'Access code (required for paid works)'; document.getElementById('accessCode').style.borderColor = 'var(--text)'; }
@@ -944,14 +946,20 @@ function renderMain() {
         const isMine = authMakerId && String(authMakerId) === String(maker.id);
         // Admin sees ALL profiles (to create/manage them); visitors & artists see
         // only live clusters or their own profile
-        if (!makerCluster && !isMine && !isAdmin) return;
+        const dormant = !makerCluster;   // no live cluster → still visible, dimmed
 
         const { w: W, h: H } = identitySize(maker.role);
         if (!makerPos[maker.id]) {
             const S = spaceDims();
-            const mxX = Math.max(60, S.w - W - 100);
-            const mxY = Math.max(80, S.h - H - 150);
-            makerPos[maker.id] = { x: 80 + (i * 157 + Math.floor(i * 0.6 * mxX)) % mxX, y: 80 + (i * 103 + Math.floor(i * 0.5 * mxY)) % mxY };
+            // Golden-angle scatter around the CENTER of the space — profiles
+            // form a loose constellation instead of stacking near the top.
+            const ang = i * 2.39996;                     // golden angle (rad)
+            const rad = 90 + 85 * Math.sqrt(i);          // spiral outward
+            let px = S.w/2 - W/2 + Math.cos(ang) * rad;
+            let py = S.h/2 - H/2 + Math.sin(ang) * rad * 0.75;
+            px = Math.max(12, Math.min(px, S.w - W - 12));
+            py = Math.max(80, Math.min(py, S.h - H - 30));
+            makerPos[maker.id] = { x: px, y: py };
         }
         const pos = makerPos[maker.id];
         const wrap = document.createElement('div');
@@ -1022,6 +1030,7 @@ function renderMain() {
             openCluster(maker);
         };
 
+        if (dormant) { wrap.style.opacity = '0.35'; }
         makeDraggableIdentity(wrap, maker.id);
         canvas.appendChild(wrap);
     });
@@ -1070,8 +1079,9 @@ function openCluster(maker) {
         cdTimers['_cluster'] = setInterval(()=>{
             const rem = currentCluster.expiresAt - Date.now();
             if (rem<=0){cdEl.textContent='EXPIRED';clearInterval(cdTimers['_cluster']);return;}
+            const ends = new Date(currentCluster.expiresAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
             const h=Math.floor(rem/3600000),m=Math.floor((rem%3600000)/60000),s=Math.floor((rem%60000)/1000);
-            cdEl.textContent=pad(h)+':'+pad(m)+':'+pad(s);
+            cdEl.textContent=pad(h)+':'+pad(m)+':'+pad(s)+' · ENDS '+ends;
             if(rem<3600000) cdEl.style.color='#ff4444';
         },1000);
     } else { cdEl.textContent = ''; }
@@ -1199,8 +1209,8 @@ function shapeGeometry(mode) {
         case 'VIDEO':       return { w:280, h:180, type:'rect',   cls:'shape-video' };
         case 'PAY_VIDEO':   return { w:280, h:180, type:'rect',   cls:'shape-pay-video',   rounded:true };
         case 'PERFORMANCE': return { w:180, h:180, type:'circle', cls:'shape-performance' };
-        case 'ONLINE':      return { w:260, h:260, type:'circle', cls:'shape-online' };
-        case 'PAY_ONLINE':  return { w:260, h:260, type:'circle', cls:'shape-pay-online' };
+        case 'ONLINE':      return { w:230, h:48, type:'rect', cls:'shape-online' };
+        case 'PAY_ONLINE':  return { w:230, h:48, type:'rect', cls:'shape-pay-online' };
         case 'SOUND':       return { w:120, h:120, type:'rect',   cls:'shape-sound' };
         case 'PAY_SOUND':   return { w:120, h:120, type:'rect',   cls:'shape-pay-sound',   rounded:true };
         case 'WWW':         return { w:300, h:70,  type:'rect',   cls:'shape-www' };
@@ -1348,8 +1358,7 @@ function emailInvite(){ if(!activeWork)return; const sub=encodeURIComponent('Inv
 /* ── PROFILE FORM ── */
 function openProfileForm(){ document.getElementById('profileForm').reset(); document.getElementById('profile-id').value=''; document.getElementById('profile-title').textContent='Create Profile'; document.getElementById('profile-submit').textContent='CREATE PROFILE'; document.getElementById('profile-changepw-section').style.display='none'; document.getElementById('profile-section').style.display='flex'; }
 function openEditProfile(id){ const m=makers.find(x=>String(x.id)===String(id));if(!m)return; document.getElementById('profile-id').value=m.id; document.getElementById('p-name').value=m.name||''; document.getElementById('p-initials').value=m.initials||''; document.getElementById('p-city').value=m.city||''; document.getElementById('p-role').value=m.role||'maker'; document.getElementById('p-code').value=m.accessCode||''; document.getElementById('profile-title').textContent='Edit Profile'; document.getElementById('profile-submit').textContent='UPDATE PROFILE';
-    const isOwn = !!authToken && String(authMakerId)===String(id);
-    document.getElementById('profile-changepw-section').style.display = isOwn ? 'block' : 'none';
+    document.getElementById('profile-changepw-section').style.display = authToken ? 'block' : 'none';
     document.getElementById('change-password-error').style.display='none';
     document.getElementById('change-password-success').style.display='none';
     document.getElementById('cp-current').value=''; document.getElementById('cp-new').value=''; document.getElementById('cp-confirm').value='';
@@ -1508,7 +1517,7 @@ async function pollActivation(){
 
     if (status.commonsPaid && status.creatorPaid) {
         clearInterval(activatePoll); activatePoll = null;
-        document.getElementById('activate-status').textContent = 'WITNESSED';
+        document.getElementById('activate-status').textContent = 'ACTIVATED';
         try {
             const cardRes = await fetch(WORKER_URL+'/api/card/'+encodeURIComponent(activateTx.txId));
             if (cardRes.ok) {
@@ -1623,6 +1632,6 @@ applyAuthUI();
 loadArchive();
 </script>
 <datalist id="city-list"></datalist>
-<a href="mailto:2026@commons-on-demand.com" style="position:fixed;bottom:8px;right:12px;font-size:8px;letter-spacing:2px;opacity:0.3;color:inherit;text-decoration:none;font-family:monospace;z-index:500;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
+<a <a href="legal.html" style="position:fixed;bottom:10px;left:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.3;text-decoration:none;color:inherit;z-index:500;">LEGAL</a> style="position:fixed;bottom:8px;right:12px;font-size:8px;letter-spacing:2px;opacity:0.3;color:inherit;text-decoration:none;font-family:monospace;z-index:500;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
 </body>
 </html>
