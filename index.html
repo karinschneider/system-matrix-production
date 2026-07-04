@@ -48,7 +48,7 @@
         /* GLOBE */
         #globe-canvas {
             position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
+            /* width/height set by JS to real pixels — CSS vh stretched it on mobile */
             cursor: grab;
         }
         #globe-canvas.dragging { cursor: grabbing; }
@@ -95,28 +95,41 @@
         /* BOTTOM */
         #bottom {
             position: fixed; bottom: 0; left: 0; right: 0;
-            padding: 16px 24px;
-            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 24px 12px;
+            /* fades from transparent into really dark blue — a transition, not a cut */
+            background: linear-gradient(180deg, rgba(5,10,30,0) 0%, rgba(5,10,30,0.85) 45%, #050a1e 100%);
+            padding-top: 46px;
+            display: flex; justify-content: space-between; align-items: flex-end;
             z-index: 100; pointer-events: none;
         }
+        body.light-mode #bottom { background: linear-gradient(180deg, rgba(10,18,48,0) 0%, rgba(10,18,48,0.85) 45%, #0a1230 100%); }
         #bottom a { pointer-events: auto; }
+        #bottom-left { display: flex; flex-direction: column; gap: 6px; }
         #console-msg {
-            font-family: monospace; font-size: 9px;
-            color: rgba(60,100,255,0.6); letter-spacing: 1px;
-            text-decoration: none; cursor: pointer; transition: color 0.2s;
+            font-family: monospace; font-size: 11px;   /* ~20% bigger */
+            letter-spacing: 2px; text-decoration: none;
+            color: rgba(60,100,255,0.85);
         }
-        #console-msg:hover { color: rgba(60,100,255,1); }
-        body.light-mode #console-msg { color: rgba(60,100,255,0.7); }
-        body.light-mode #console-msg:hover { color: rgba(60,100,255,1); }
+        #console-msg:hover { color: rgba(90,130,255,1); }
+        #legal-link {
+            font-family: monospace; font-size: 11px;   /* same size + font */
+            letter-spacing: 2px; text-decoration: none;
+            color: rgba(60,100,255,0.85);
+        }
+        #legal-link:hover { color: rgba(90,130,255,1); }
+        #cp-link {
+            margin-top: 8px;                            /* space below LEGAL */
+            font-family: monospace; font-size: 8px; letter-spacing: 2px;
+            text-decoration: none; color: rgba(255,255,255,0.3);
+        }
         #enter-link {
-            font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
-            color: rgba(255,255,255,0.3); text-decoration: none;
-            pointer-events: auto;
-            transition: color 0.2s;
+            position: fixed; left: 50%; transform: translateX(-50%);
+            bottom: 21vh;                       /* floats just under the Earth */
+            z-index: 90;
+            font-family: monospace; font-size: 12px; letter-spacing: 4px;
+            text-decoration: none; color: rgba(120,150,255,0.75);
         }
-        body.light-mode #enter-link { color: rgba(0,0,0,0.3); }
-        #enter-link:hover { color: rgba(255,255,255,0.8); }
-        body.light-mode #enter-link:hover { color: rgba(0,0,0,0.8); }
+        #enter-link:hover { color: #2a4bd7; }           /* dark blue hover */
 
         /* TOOLTIP */
         #tooltip {
@@ -155,9 +168,13 @@
 </div>
 
 <div id="bottom">
-    <a id="console-msg" href="economy.html">THE EARTH IS OUR COMMONS</a>
+    <div id="bottom-left">
+        <a id="console-msg" href="economy.html">THE EARTH IS OUR COMMONS</a>
+        <a id="legal-link" href="legal.html">LEGAL</a>
+        <a id="cp-link" href="mailto:2026@commons-on-demand.com">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
+    </div>
+
     <a id="enter-link" href="cluster.html">ENTRY →</a>
-    <a <a href="legal.html" style="position:fixed;bottom:10px;left:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.3;text-decoration:none;color:inherit;z-index:500;">LEGAL</a> style="font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.25);text-decoration:none;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
 </div>
 
 <div id="tooltip"></div>
@@ -344,7 +361,7 @@ function latLonTo3D(lat, lon, rotation) {
     const y3 = R * Math.cos(phi);
     const z3 = R * Math.sin(phi) * Math.sin(theta);
     // tilt the pole toward the viewer + a gentle idle nod so rotation is 3D
-    const t  = (GLOBE_TILT + tiltWobble) * Math.PI / 180;
+    const t  = GLOBE_TILT * Math.PI / 180;
     const y2 = y3 * Math.cos(t) - z3 * Math.sin(t);
     const z2 = y3 * Math.sin(t) + z3 * Math.cos(t);
     return { x: cx + x3, y: cy - y2, z: z2, visible: z2 > -R * 0.1 };
@@ -463,7 +480,7 @@ function drawGlobe(rotation) {
 /* ── ANIMATE ── */
 function animate() {
     if (!isDragging && Math.abs(spinVel) > 0.05) { rot += spinVel; spinVel *= 0.94; }   // glide
-    else if (autoRotate && !isDragging) { rot += 0.04; wobblePhase += 0.004; tiltWobble = Math.sin(wobblePhase) * 6; }
+    else if (autoRotate && !isDragging) { rot += 0.04; }   // steady spin, fixed tilt — no wobble
     drawGlobe(rot);
     requestAnimationFrame(animate);
 }
@@ -600,9 +617,10 @@ async function loadData() {
         const now = Date.now();
         const liveCount = clusters.filter(c => c.expiresAt > now).length;
         document.getElementById('live-count').textContent = liveCount + ' LIVE';
+        document.getElementById('console-msg').textContent = 'THE EARTH IS OUR COMMONS';
         buildFeed();
     } catch(e) {
-        document.getElementById('console-msg').textContent = 'OFFLINE';
+        document.getElementById('console-msg').innerHTML = '<span style="color:#e8453c;opacity:0.7;">●</span> THE EARTH IS OUR COMMONS';
     }
 }
 

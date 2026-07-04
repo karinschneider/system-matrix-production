@@ -109,7 +109,7 @@
         .shape-wrap:hover { opacity: 0.75; }
         .shape-wrap.expired { opacity: 0.2; pointer-events: none; }
         .shape-video       { border: 1px solid var(--pink); background: transparent; }
-        .shape-performance { border: 1px solid var(--pink); border-radius: 50%; background: transparent; }
+        .shape-performance { border: 1px solid var(--pink); border-radius: 50%; background: transparent; aspect-ratio: 1/1; overflow: hidden; }
         .shape-online      { border: 1px solid var(--pink); border-radius: 4px; background: transparent; }
         .shape-pay-online  { border: 1px solid var(--pink); border-radius: 4px; background: rgba(196,92,122,0.08); }
         .shape-sound       { border: 1px solid var(--grey); background: transparent; }
@@ -271,7 +271,6 @@
     <div class="db-controls">
         <span class="admin-only" onclick="exportData()">EXPORT</span>
     </div>
-    <div style="font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.15);">2026 © commons-on-demand.com</div>
 </div>
 
 <!-- CLUSTER VIEW -->
@@ -301,8 +300,8 @@
         <div class="form-close" onclick="closeActivate()">×</div>
         <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:16px;">Attend This Cluster</div>
         <div id="activate-card-holder" style="width:min(240px,70vw);margin:0 auto 20px;"></div>
-        <div style="font-size:8px;letter-spacing:2px;opacity:0.55;margin-bottom:10px;line-height:1.6;">
-            DOWNLOAD YOUR UNIQUE CARD — NUMBERED — TO EXPERIENCE IT.<br>PAY WHAT YOU CAN. MINIMUM <span id="activate-floor"></span>.
+        <div style="font-size:9px;letter-spacing:2px;opacity:0.65;margin-bottom:12px;line-height:1.9;text-transform:uppercase;">
+            Unique card — numbered.<br>Pay what you can. Minimum <span id="activate-floor"></span>.
         </div>
         <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:6px;">
             <span style="font-size:16px;opacity:0.6;">$</span>
@@ -311,9 +310,7 @@
         </div>
         <div id="activate-amount-err" style="font-size:8px;letter-spacing:1px;color:#e8453c;min-height:12px;margin-bottom:8px;"></div>
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px;">
-            <button class="btn" id="activate-pay-btn" style="padding:12px;font-size:10px;">
-                GET THE CARD
-            </button>
+            <button class="btn" id="activate-pay-btn" style="padding:12px;font-size:10px;">ATTEND CLUSTER + DOWNLOAD CARD</button>
         </div>
         <div id="activate-split-note" style="font-size:8px;letter-spacing:1px;opacity:0.5;margin-bottom:16px;"></div>
         <div style="display:flex;justify-content:center;gap:24px;margin-bottom:16px;">
@@ -1208,9 +1205,9 @@ function shapeGeometry(mode) {
     switch(mode) {
         case 'VIDEO':       return { w:280, h:180, type:'rect',   cls:'shape-video' };
         case 'PAY_VIDEO':   return { w:280, h:180, type:'rect',   cls:'shape-pay-video',   rounded:true };
-        case 'PERFORMANCE': return { w:180, h:180, type:'circle', cls:'shape-performance' };
-        case 'ONLINE':      return { w:230, h:48, type:'rect', cls:'shape-online' };
-        case 'PAY_ONLINE':  return { w:230, h:48, type:'rect', cls:'shape-pay-online' };
+        case 'PERFORMANCE': return { w:216, h:216, type:'circle', cls:'shape-performance' };
+        case 'ONLINE':      return { w:345, h:58, type:'rect', cls:'shape-online' };
+        case 'PAY_ONLINE':  return { w:345, h:58, type:'rect', cls:'shape-pay-online' };
         case 'SOUND':       return { w:120, h:120, type:'rect',   cls:'shape-sound' };
         case 'PAY_SOUND':   return { w:120, h:120, type:'rect',   cls:'shape-pay-sound',   rounded:true };
         case 'WWW':         return { w:300, h:70,  type:'rect',   cls:'shape-www' };
@@ -1632,6 +1629,7 @@ applyAuthUI();
 loadArchive();
 </script>
 <datalist id="city-list"></datalist>
-<a <a href="legal.html" style="position:fixed;bottom:10px;left:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.3;text-decoration:none;color:inherit;z-index:500;">LEGAL</a> style="position:fixed;bottom:8px;right:12px;font-size:8px;letter-spacing:2px;opacity:0.3;color:inherit;text-decoration:none;font-family:monospace;z-index:500;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
+<a href="legal.html" style="position:fixed;bottom:26px;right:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.35;text-decoration:none;color:inherit;z-index:500;">LEGAL</a>
+<a href="mailto:2026@commons-on-demand.com" style="position:fixed;bottom:10px;right:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.35;text-decoration:none;color:inherit;z-index:500;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
 </body>
 </html>
