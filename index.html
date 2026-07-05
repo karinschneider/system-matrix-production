@@ -24,24 +24,39 @@
             z-index: 100; pointer-events: none;
         }
         #header > * { pointer-events: auto; }
-        .title {
-            font-size: 11px; font-weight: bold; letter-spacing: 3px;
-            text-transform: uppercase; color: #fff; opacity: 0.8;
-            text-decoration: none;
+        .logo {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 18px; font-weight: 500; letter-spacing: 0.04em;
+            color: #fff; cursor: pointer; text-decoration: none; white-space: nowrap;
         }
-        body.light-mode .title { color: #000; }
+        body.light-mode .logo { color: #111; }
+        .ignition-wrap { display: inline-flex; align-items: center; }
+        .ignition {
+            font-size: 14px; line-height: 1; color: #3C64FF;
+            margin-right: 2px;
+            animation: pulse-glow 2.4s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.4; text-shadow: 0 0 0 rgba(60,100,255,0); }
+            50%      { opacity: 1;   text-shadow: 0 0 9px rgba(60,100,255,0.85); }
+        }
+        .beta-tag {
+            font-size: 8px; letter-spacing: 2px; opacity: 0.5; vertical-align: super;
+            margin-left: 6px;
+        }
         #live-count {
-            font-size: 9px; letter-spacing: 2px; font-family: monospace;
-            color: #fff; opacity: 0.3;
+            font-size: 13px; letter-spacing: 2px; font-family: monospace;
+            color: #888;
         }
-        body.light-mode #live-count { color: #000; }
+        body.light-mode #live-count { color: #888; }
         .btn {
-            background: none; border: 1px solid rgba(255,255,255,0.5); color: #fff;
-            padding: 4px 10px; font-size: 9px; cursor: pointer; text-transform: uppercase;
-            transition: 0.2s; letter-spacing: 1px; font-weight: bold;
+            background: none; border: 1px solid #444; color: #fff;
+            width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
-        body.light-mode .btn { border-color: rgba(0,0,0,0.5); color: #000; }
+        body.light-mode .btn { border-color: #444; color: #000; }
         .btn:hover { background: rgba(255,255,255,0.15); }
         body.light-mode .btn:hover { background: rgba(0,0,0,0.1); }
 
@@ -101,22 +116,22 @@
         }
         #bottom a { pointer-events: auto; }
         #console-msg {
-            font-family: monospace; font-size: 9px;
-            color: rgba(60,100,255,0.6); letter-spacing: 1px;
-            text-decoration: none; cursor: pointer; transition: color 0.2s;
+            font-family: monospace; font-size: 16px;
+            color: #3C64FF; letter-spacing: 1px;
+            text-decoration: none; cursor: pointer; transition: text-shadow 0.2s;
         }
-        #console-msg:hover { color: rgba(60,100,255,1); }
-        body.light-mode #console-msg { color: rgba(60,100,255,0.7); }
-        body.light-mode #console-msg:hover { color: rgba(60,100,255,1); }
+        #console-msg:hover { text-shadow: 0 0 9px rgba(60,100,255,0.85); }
+        .legal-link:hover { text-shadow: 0 0 9px rgba(60,100,255,0.85); }
+        body.light-mode #console-msg { color: #3C64FF; }
+        body.light-mode #console-msg:hover { text-shadow: 0 0 9px rgba(60,100,255,0.85); }
         #enter-link {
-            font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
-            color: rgba(255,255,255,0.3); text-decoration: none;
+            background: #fff; color: #000; font-size: 13px; font-weight: 500;
+            padding: 8px 16px; text-decoration: none;
             pointer-events: auto;
-            transition: color 0.2s;
+            transition: opacity 0.2s;
         }
-        body.light-mode #enter-link { color: rgba(0,0,0,0.3); }
-        #enter-link:hover { color: rgba(255,255,255,0.8); }
-        body.light-mode #enter-link:hover { color: rgba(0,0,0,0.8); }
+        body.light-mode #enter-link { background: #111; color: #fff; }
+        #enter-link:hover { opacity: 0.85; }
 
         /* TOOLTIP */
         #tooltip {
@@ -141,9 +156,10 @@
 <body>
 
 <div id="header">
-    <a class="title" href="index.html">COMMONS ON DEMAND</a>
+    <a class="logo" href="index.html"><span>COMMONS</span><span class="ignition-wrap"><span class="ignition">◉</span><span>N</span></span><span>DEMAND</span><span class="beta-tag">BETA</span></a>
     <div style="display:flex;gap:8px;align-items:center;">
         <span id="live-count"></span>
+        <a id="enter-link" href="cluster.html">ENTRY →</a>
         <button class="btn" onclick="toggleMode()">◐</button>
     </div>
 </div>
@@ -155,10 +171,11 @@
 </div>
 
 <div id="bottom">
-    <a id="console-msg" href="economy.html">THE EARTH IS OUR COMMONS</a>
-    <a id="enter-link" href="cluster.html">ENTRY →</a>
-    <a href="legal.html" style="position:fixed;bottom:10px;left:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.35;text-decoration:none;color:inherit;z-index:500;">LEGAL</a>
-    <a href="mailto:2026@commons-on-demand.com" style="position:fixed;bottom:10px;right:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.35;text-decoration:none;color:inherit;z-index:500;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+        <a id="console-msg" href="economy.html">THE EARTH IS OUR COMMONS</a>
+        <a href="legal.html" class="legal-link" style="font-family:monospace;font-size:14px;letter-spacing:2px;color:#3C64FF;text-decoration:none;transition:text-shadow 0.2s;">LEGAL</a>
+    </div>
+    <a href="mailto:2026@commons-on-demand.com" style="font-family:monospace;font-size:12px;letter-spacing:2px;color:#6b6b6b;text-decoration:none;z-index:500;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
 </div>
 
 <div id="tooltip"></div>
