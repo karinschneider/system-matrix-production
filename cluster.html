@@ -25,7 +25,7 @@
             --bg: #ffffff; 
             --text: #000000; 
             --accent: #222222;
-            --grey: #555555;
+            --grey: #6b6b6b;
             --border: #cccccc;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -109,9 +109,9 @@
         .shape-wrap:hover { opacity: 0.75; }
         .shape-wrap.expired { opacity: 0.2; pointer-events: none; }
         .shape-video       { border: 1px solid var(--pink); background: transparent; }
-        .shape-performance { border: 1px solid var(--pink); border-radius: 50%; background: transparent; aspect-ratio: 1/1; overflow: hidden; }
-        .shape-online      { border: 1px solid var(--pink); border-radius: 4px; background: transparent; }
-        .shape-pay-online  { border: 1px solid var(--pink); border-radius: 4px; background: rgba(196,92,122,0.08); }
+        .shape-performance { border: 1px solid var(--pink); border-radius: 50%; background: transparent; }
+        .shape-online      { border: 2px solid var(--pink); border-radius: 50%; background: transparent; }
+        .shape-pay-online  { border: 2px solid var(--pink); border-radius: 50%; background: rgba(196,92,122,0.08); }
         .shape-sound       { border: 1px solid var(--grey); background: transparent; }
         .shape-www         { border: 1px solid var(--pink); background: transparent; }
         .shape-image       { border: 1px solid var(--grey); background: transparent; }
@@ -140,7 +140,7 @@
         .shape-del-btn:hover { color: #ff0000; }
 
         /* CLUSTER VIEW */
-        #cluster-view { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 200; display: none; overflow: hidden; }
+        #cluster-view { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 200; display: none; overflow: auto; -webkit-overflow-scrolling: touch; }
         #cluster-header { position: fixed; top: 0; left: 0; right: 0; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 300; pointer-events: none; }
         #cluster-header > * { pointer-events: auto; }
         #cluster-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; }
@@ -156,6 +156,7 @@
         #bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 100; font-family: monospace; font-size: 9px; color: var(--accent); pointer-events: none; }
         #bottom-bar > * { pointer-events: auto; }
         #console-display { opacity: 0.5; }
+        body.light-mode #console-display { color: #444; opacity: 0.8; }
         .db-controls { display: flex; gap: 20px; }
         .db-controls span { cursor: pointer; opacity: 0.4; transition: 0.2s; }
         .db-controls span:hover { opacity: 1; }
@@ -235,15 +236,14 @@
             #text-body { font-size: 14px; }
             .text-overlay-inner { padding: 70px 0 60px; }
         }
-            @keyframes livepulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.3;transform:scale(0.7);} }
-</style>
+    </style>
 </head>
 <body>
 
 <div id="header">
     <div class="title" onclick="openSignIn()">COMMONS ON DEMAND <span style="font-size:8px;letter-spacing:2px;opacity:0.5;vertical-align:super;">BETA</span></div>
     <div style="display:flex; gap:8px; align-items:center;">
-        <span id="live-count" style="font-size:9px; letter-spacing:1px; opacity:0.6; font-family:monospace;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#7FFF00;margin-right:5px;animation:livepulse 1.6s infinite;"></span></span>
+        <span id="live-count" style="font-size:9px; letter-spacing:1px; opacity:0.4; font-family:monospace;"></span>
         <span id="user-display" class="auth-user"></span>
         <button class="btn admin-only" id="profile-btn" onclick="openProfileForm()">+ CREATE PROFILE</button>
         <button class="btn admin-only" onclick="openInvitePanel()">+ INVITE</button>
@@ -271,6 +271,7 @@
     <div class="db-controls">
         <span class="admin-only" onclick="exportData()">EXPORT</span>
     </div>
+    <div style="font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.15);">2026 © commons-on-demand.com</div>
 </div>
 
 <!-- CLUSTER VIEW -->
@@ -283,7 +284,7 @@
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
             <span id="cluster-price" style="font-family:monospace;font-size:10px;letter-spacing:1px;"></span>
-            <button class="btn" id="buy-btn" onclick="buyCluster()" style="display:none;">ACTIVATE</button>
+            <button class="btn" id="buy-btn" onclick="buyCluster()" style="display:none;">ACTIVATE C</button>
             <span id="cluster-cd" style="font-family:monospace;font-size:9px;opacity:0.4;letter-spacing:1px;"></span>
             <button class="btn" id="start-cluster-btn" onclick="openClusterForm()" style="display:none;">+ START CLUSTER</button>
             <button class="btn" id="upload-btn" onclick="openUploadForm()" style="display:none;">+ UPLOAD</button>
@@ -298,21 +299,17 @@
 <div id="activate-section" class="overlay" style="z-index:5500;">
     <div class="form-container" style="max-width:420px;text-align:center;" onclick="event.stopPropagation()">
         <div class="form-close" onclick="closeActivate()">×</div>
-        <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:16px;">Attend This Cluster</div>
+        <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:16px;">Activate Cluster</div>
         <div id="activate-card-holder" style="width:min(240px,70vw);margin:0 auto 20px;"></div>
-        <div style="font-size:9px;letter-spacing:2px;opacity:0.65;margin-bottom:12px;line-height:1.9;text-transform:uppercase;">
-            Unique card — numbered.<br>Pay what you can. Minimum <span id="activate-floor"></span>.
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+            <button class="btn" id="activate-commons-btn" style="padding:12px;font-size:10px;">
+                PAY COMMONS — <span id="activate-commons-amt"></span>
+            </button>
+            <button class="btn" id="activate-creator-btn" style="padding:12px;font-size:10px;">
+                PAY CREATOR — <span id="activate-creator-amt"></span>
+            </button>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:6px;">
-            <span style="font-size:16px;opacity:0.6;">$</span>
-            <input id="activate-amount" type="number" step="0.01" min="0"
-                   style="width:110px;background:transparent;border:none;border-bottom:1px solid var(--accent);color:var(--text);font-size:22px;text-align:center;font-family:monospace;padding:4px;">
-        </div>
-        <div id="activate-amount-err" style="font-size:8px;letter-spacing:1px;color:#e8453c;min-height:12px;margin-bottom:8px;"></div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px;">
-            <button class="btn" id="activate-pay-btn" style="padding:12px;font-size:10px;">ATTEND CLUSTER + DOWNLOAD CARD</button>
-        </div>
-        <div id="activate-split-note" style="font-size:8px;letter-spacing:1px;opacity:0.5;margin-bottom:16px;"></div>
+        <div id="activate-zelle-note" style="display:none;font-size:8px;letter-spacing:1px;opacity:0.5;margin:-8px 0 16px;word-break:break-all;"></div>
         <div style="display:flex;justify-content:center;gap:24px;margin-bottom:16px;">
             <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
                 <div id="light-commons" style="width:12px;height:12px;border-radius:50%;background:#e8453c;transition:background 0.3s;"></div>
@@ -451,15 +448,25 @@
                     <button type="button" class="btn" onclick="generateCode('p-code')" style="white-space:nowrap;">GENERATE</button>
                 </div>
             </div>
-            
-            
+            <div>
+                <label>Payout method</label>
+                <select id="p-payout-method">
+                    <option value="paypal">PayPal</option>
+                    <option value="venmo">Venmo</option>
+                    <option value="zelle">Zelle</option>
+                </select>
+            </div>
+            <div>
+                <label>Payout handle</label>
+                <input type="text" id="p-payout-handle" placeholder="@username or email/phone">
+            </div>
             <button type="submit" id="profile-submit" class="btn" style="grid-column:span 2;margin-top:8px;padding:10px;font-size:10px;">CREATE PROFILE</button>
             <button type="button" class="btn" onclick="closeProfileForm()" style="grid-column:span 2;border:none;opacity:0.3;font-size:10px;">CANCEL</button>
         </form>
 
         <!-- CHANGE PASSWORD — shown only when editing your own profile -->
         <div id="profile-changepw-section" style="display:none; margin-top:24px; padding-top:20px; border-top:1px solid var(--border);">
-            <div class="auth-title" style="margin-bottom:16px;">Change Your Password (this signed-in account)</div>
+            <div class="auth-title" style="margin-bottom:16px;">Change Password</div>
             <div class="auth-error" id="change-password-error"></div>
             <div class="auth-field">
                 <label>Current Password</label>
@@ -520,7 +527,6 @@
                         <option value="PERFORMANCE">PERFORMANCE — LIVE</option>
                         <option value="SOUND">SOUND</option>
                         <option value="WWW">WWW</option>
-                        <option value="SLIDES">SLIDES</option>
                         <option value="ONLINE">ONLINE (live link)</option>
                         <option value="IMAGE">IMAGE</option>
                         <option value="TEXT">TEXT</option>
@@ -529,7 +535,6 @@
                         <option value="PAY_VIDEO">PAY — VIDEO</option>
                         <option value="PAY_SOUND">PAY — SOUND</option>
                         <option value="PAY_WWW">PAY — WWW</option>
-                        <option value="PAY_SLIDES">PAY — SLIDES</option>
                         <option value="PAY_ONLINE">PAY — ONLINE</option>
                         <option value="PAY_IMAGE">PAY — IMAGE</option>
                         <option value="PAY_TEXT">PAY — TEXT</option>
@@ -567,7 +572,7 @@
                     <button type="button" class="btn" onclick="generateCode('accessCode')" style="white-space:nowrap;">GENERATE</button>
                 </div>
             </div>
-            <div style="grid-column:span 2;" id="file-upload-field"><div id="file-hint" style="font-size:8px;letter-spacing:1px;opacity:0.5;margin-bottom:6px;"></div>
+            <div style="grid-column:span 2;" id="file-upload-field">
                 <label>Upload file (auto-fills path)</label>
                 <input type="file" id="mediaFile" style="border:none; padding:0; font-size:10px;" onchange="handleFileSelection(this)">
             </div>
@@ -683,7 +688,6 @@ async function doSignUp() {
     const name       = document.getElementById('signup-name').value.trim();
     const initials   = document.getElementById('signup-initials').value.trim().toUpperCase() || getInitials(name);
     const city       = document.getElementById('signup-city').value.trim();
-    if (city && !cityOnGlobe(city) && !confirm('City "' + city + '" is not on the globe map yet — you can register, but your dot won\'t appear until we add it. Continue?')) return;
     const role       = document.getElementById('signup-role').value;
     const accessCode = document.getElementById('signup-code').value.trim();
     const email      = document.getElementById('signup-email').value.trim();
@@ -692,6 +696,7 @@ async function doSignUp() {
     errEl.style.display = 'none';
     if (!inviteCode || !name || !city || !role || !email || !password) { errEl.textContent = 'ALL FIELDS REQUIRED'; errEl.style.display = 'block'; return; }
     if (password.length < 8) { errEl.textContent = 'PASSWORD MIN 8 CHARACTERS'; errEl.style.display = 'block'; return; }
+    if (city && !cityOnGlobe(city)) { errEl.style.display='block'; errEl.textContent='NOTE: city not on globe yet — your dot appears once we add it.'; }
     try {
         const res  = await fetch(WORKER_URL + '/api/auth/register', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -844,16 +849,14 @@ function handleModeChange(mode) {
     const isOnline = mode === 'ONLINE' || mode === 'PAY_ONLINE';
     const isPaid   = PAY_MODES.includes(mode);
     const isPerf   = mode === 'PERFORMANCE';
-    const noFile   = isText || isWWW || isPerf || isOnline;  // slides CAN upload (PDF)
+    const noFile   = isText || isWWW || isPerf || isOnline;
     document.getElementById('materials-label').textContent = isText ? 'Text content' : 'Notes / description (optional)';
     document.getElementById('materials').placeholder = isText ? 'Write your program note or text here...' : 'Notes / description (optional)';
     document.getElementById('materials').style.height = isText ? '200px' : '80px';
     document.getElementById('file-link-field').style.display   = noFile ? 'none' : '';
     document.getElementById('file-upload-field').style.display = noFile ? 'none' : '';
     document.getElementById('url-link-field').style.display    = (isWWW || isSlides || isOnline) ? '' : 'none';
-    document.getElementById('url-link-label').textContent = isSlides ? 'Published presentation URL (optional)' : (isOnline ? 'Live / stream URL' : 'URL Link (for WWW entries)');
-    const fileHint = document.getElementById('file-hint');
-    if (fileHint) fileHint.textContent = isSlides ? 'SLIDES: upload a PDF — export from Keynote/PowerPoint as PDF first. Other slide formats are not supported.' : '';
+    document.getElementById('url-link-label').textContent = isSlides ? 'Presentation URL (optional)' : (isOnline ? 'Live / stream URL' : 'URL Link (for WWW entries)');
     document.getElementById('linkUrl').placeholder = isSlides ? 'https://...' : 'https://yourproject.com';
     const codeLabel = document.getElementById('access-code-label');
     if (isPaid) { codeLabel.textContent = 'Access code (required for paid works)'; document.getElementById('accessCode').style.borderColor = 'var(--text)'; }
@@ -932,8 +935,7 @@ function renderMain() {
     Object.values(cdTimers).forEach(t => clearInterval(t));
     cdTimers = {};
     canvas.innerHTML = '';
-    { const el=document.getElementById('live-count'); const n=clusters.filter(c=>c.expiresAt>Date.now()).length;
-      el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#7FFF00;margin-right:5px;animation:livepulse 1.6s infinite;"></span>'+n+' LIVE'; }
+    document.getElementById('live-count').textContent = clusters.filter(c => c.expiresAt > Date.now()).length + ' LIVE';
 
     makers.forEach((maker, i) => {
         // CANVAS VISIBILITY: show a profile only if it has a live cluster,
@@ -943,20 +945,14 @@ function renderMain() {
         const isMine = authMakerId && String(authMakerId) === String(maker.id);
         // Admin sees ALL profiles (to create/manage them); visitors & artists see
         // only live clusters or their own profile
-        const dormant = !makerCluster;   // no live cluster → still visible, dimmed
+        if (!makerCluster && !isMine && !isAdmin) return;
 
         const { w: W, h: H } = identitySize(maker.role);
         if (!makerPos[maker.id]) {
             const S = spaceDims();
-            // Golden-angle scatter around the CENTER of the space — profiles
-            // form a loose constellation instead of stacking near the top.
-            const ang = i * 2.39996;                     // golden angle (rad)
-            const rad = 90 + 85 * Math.sqrt(i);          // spiral outward
-            let px = S.w/2 - W/2 + Math.cos(ang) * rad;
-            let py = S.h/2 - H/2 + Math.sin(ang) * rad * 0.75;
-            px = Math.max(12, Math.min(px, S.w - W - 12));
-            py = Math.max(80, Math.min(py, S.h - H - 30));
-            makerPos[maker.id] = { x: px, y: py };
+            const mxX = Math.max(60, S.w - W - 100);
+            const mxY = Math.max(80, S.h - H - 150);
+            makerPos[maker.id] = { x: 80 + (i * 157 + Math.floor(i * 0.6 * mxX)) % mxX, y: 80 + (i * 103 + Math.floor(i * 0.5 * mxY)) % mxY };
         }
         const pos = makerPos[maker.id];
         const wrap = document.createElement('div');
@@ -1027,12 +1023,11 @@ function renderMain() {
             openCluster(maker);
         };
 
-        if (dormant) { wrap.style.opacity = '0.35'; }
         makeDraggableIdentity(wrap, maker.id);
         canvas.appendChild(wrap);
     });
 
-    log('COMMONS_ON_DEMAND // ' + makers.length + ' LIVE');
+    log('COMMONS_ON_DEMAND // ' + makers.length + ' PROFILES');
 }
 
 /* ── CLUSTER ── */
@@ -1076,9 +1071,8 @@ function openCluster(maker) {
         cdTimers['_cluster'] = setInterval(()=>{
             const rem = currentCluster.expiresAt - Date.now();
             if (rem<=0){cdEl.textContent='EXPIRED';clearInterval(cdTimers['_cluster']);return;}
-            const ends = new Date(currentCluster.expiresAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
             const h=Math.floor(rem/3600000),m=Math.floor((rem%3600000)/60000),s=Math.floor((rem%60000)/1000);
-            cdEl.textContent=pad(h)+':'+pad(m)+':'+pad(s)+' · ENDS '+ends;
+            cdEl.textContent=pad(h)+':'+pad(m)+':'+pad(s);
             if(rem<3600000) cdEl.style.color='#ff4444';
         },1000);
     } else { cdEl.textContent = ''; }
@@ -1108,6 +1102,7 @@ function renderCluster() {
         const msg = document.createElement('div');
         msg.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);opacity:0.3;text-align:center;';
         msg.textContent = currentCluster ? 'CLUSTER ACTIVE — UPLOAD YOUR FIRST WORK' : 'START A CLUSTER TO BEGIN UPLOADING';
+    msg.style.fontSize = '13px';   // ~30% larger
         canvas.appendChild(msg);
         return;
     }
@@ -1205,9 +1200,9 @@ function shapeGeometry(mode) {
     switch(mode) {
         case 'VIDEO':       return { w:280, h:180, type:'rect',   cls:'shape-video' };
         case 'PAY_VIDEO':   return { w:280, h:180, type:'rect',   cls:'shape-pay-video',   rounded:true };
-        case 'PERFORMANCE': return { w:216, h:216, type:'circle', cls:'shape-performance' };
-        case 'ONLINE':      return { w:345, h:58, type:'rect', cls:'shape-online' };
-        case 'PAY_ONLINE':  return { w:345, h:58, type:'rect', cls:'shape-pay-online' };
+        case 'PERFORMANCE': return { w:180, h:180, type:'circle', cls:'shape-performance' };
+        case 'ONLINE':      return { w:260, h:260, type:'circle', cls:'shape-online' };
+        case 'PAY_ONLINE':  return { w:260, h:260, type:'circle', cls:'shape-pay-online' };
         case 'SOUND':       return { w:120, h:120, type:'rect',   cls:'shape-sound' };
         case 'PAY_SOUND':   return { w:120, h:120, type:'rect',   cls:'shape-pay-sound',   rounded:true };
         case 'WWW':         return { w:300, h:70,  type:'rect',   cls:'shape-www' };
@@ -1354,8 +1349,9 @@ function emailInvite(){ if(!activeWork)return; const sub=encodeURIComponent('Inv
 
 /* ── PROFILE FORM ── */
 function openProfileForm(){ document.getElementById('profileForm').reset(); document.getElementById('profile-id').value=''; document.getElementById('profile-title').textContent='Create Profile'; document.getElementById('profile-submit').textContent='CREATE PROFILE'; document.getElementById('profile-changepw-section').style.display='none'; document.getElementById('profile-section').style.display='flex'; }
-function openEditProfile(id){ const m=makers.find(x=>String(x.id)===String(id));if(!m)return; document.getElementById('profile-id').value=m.id; document.getElementById('p-name').value=m.name||''; document.getElementById('p-initials').value=m.initials||''; document.getElementById('p-city').value=m.city||''; document.getElementById('p-role').value=m.role||'maker'; document.getElementById('p-code').value=m.accessCode||''; document.getElementById('profile-title').textContent='Edit Profile'; document.getElementById('profile-submit').textContent='UPDATE PROFILE';
-    document.getElementById('profile-changepw-section').style.display = authToken ? 'block' : 'none';
+function openEditProfile(id){ const m=makers.find(x=>String(x.id)===String(id));if(!m)return; document.getElementById('profile-id').value=m.id; document.getElementById('p-name').value=m.name||''; document.getElementById('p-initials').value=m.initials||''; document.getElementById('p-city').value=m.city||''; document.getElementById('p-role').value=m.role||'maker'; document.getElementById('p-code').value=m.accessCode||''; document.getElementById('p-payout-method').value=m.payoutMethod||'paypal'; document.getElementById('p-payout-handle').value=m.payoutHandle||''; document.getElementById('profile-title').textContent='Edit Profile'; document.getElementById('profile-submit').textContent='UPDATE PROFILE';
+    const isOwn = !!authToken && String(authMakerId)===String(id);
+    document.getElementById('profile-changepw-section').style.display = isOwn ? 'block' : 'none';
     document.getElementById('change-password-error').style.display='none';
     document.getElementById('change-password-success').style.display='none';
     document.getElementById('cp-current').value=''; document.getElementById('cp-new').value=''; document.getElementById('cp-confirm').value='';
@@ -1366,7 +1362,7 @@ document.getElementById('profileForm').onsubmit=async function(e){
     e.preventDefault();
     const editId=document.getElementById('profile-id').value;
     const name=document.getElementById('p-name').value.trim();
-    const data={ name, initials:document.getElementById('p-initials').value.trim().toUpperCase()||getInitials(name), city:document.getElementById('p-city').value.trim(), role:document.getElementById('p-role').value, accessCode:document.getElementById('p-code').value.trim() };
+    const data={ name, initials:document.getElementById('p-initials').value.trim().toUpperCase()||getInitials(name), city:document.getElementById('p-city').value.trim(), role:document.getElementById('p-role').value, accessCode:document.getElementById('p-code').value.trim(), payoutMethod:document.getElementById('p-payout-method').value, payoutHandle:document.getElementById('p-payout-handle').value.trim() };
     const submitBtn=document.getElementById('profile-submit'); const original=submitBtn.textContent; submitBtn.disabled=true; submitBtn.textContent='SAVING…';
     try {
         if(editId){ await apiFetch('/api/makers/'+editId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); }
@@ -1435,6 +1431,13 @@ function activateCardSVG(cluster, author, city, tx){
 </svg>`;
 }
 
+function payoutLink(method, handle, amountDollars){
+    if(!handle) return null;
+    const h = handle.replace(/^@/, '');
+    if(method==='paypal') return 'https://paypal.me/'+encodeURIComponent(h)+'/'+amountDollars;
+    if(method==='venmo')  return 'https://venmo.com/'+encodeURIComponent(h)+'?txn=pay&amount='+amountDollars+'&note=Commons%20cluster%20support';
+    return null; // zelle has no shareable link — shown as text instead
+}
 
 async function buyCluster(){
     if(!currentCluster || !currentMaker) return;
@@ -1448,9 +1451,10 @@ async function buyCluster(){
         const total = currentCluster.total || 0;
         activateTx = {
             txId: 'TX-' + Date.now(),
-            totalAmount: total,
             commonsAmount: Math.round(total * 0.10),
-            creatorAmount: total - Math.round(total * 0.10)
+            creatorAmount: Math.round(total * 0.90),
+            creatorPayoutMethod: currentMaker.payoutMethod || 'paypal',
+            creatorPayoutHandle: currentMaker.payoutHandle || ''
         };
     }
     openActivateOverlay();
@@ -1461,33 +1465,31 @@ function openActivateOverlay(){
     document.getElementById('activate-card-holder').innerHTML =
         activateCardSVG(currentCluster.title, currentMaker.name, currentMaker.city, tx.txId);
 
-    const floor = tx.totalAmount != null ? tx.totalAmount : (tx.commonsAmount + tx.creatorAmount);
-    const floorD = (floor/100).toFixed(2);
-    document.getElementById('activate-floor').textContent = '$'+floorD;
-    const amtEl = document.getElementById('activate-amount');
-    amtEl.value = floorD; amtEl.min = floorD;
-    const noteEl = document.getElementById('activate-split-note');
-    const errEl  = document.getElementById('activate-amount-err');
-    function refreshSplit(){
-        const cents = Math.round(parseFloat(amtEl.value||'0')*100);
-        if (isNaN(cents) || cents < floor) { errEl.textContent = 'MINIMUM $'+floorD; noteEl.textContent=''; return false; }
-        errEl.textContent = '';
-        const commons = Math.round(cents*0.10), artist = cents-commons;
-        noteEl.textContent = '$'+(artist/100).toFixed(2)+' → ARTIST · $'+(commons/100).toFixed(2)+' → COMMONS · SPLIT AT THE SOURCE';
-        return true;
-    }
-    amtEl.oninput = refreshSplit; refreshSplit();
+    const commonsDollars = (tx.commonsAmount/100).toFixed(2);
+    const creatorDollars = (tx.creatorAmount/100).toFixed(2);
+    document.getElementById('activate-commons-amt').textContent = '$'+commonsDollars;
+    document.getElementById('activate-creator-amt').textContent = '$'+creatorDollars;
 
-    document.getElementById('activate-pay-btn').onclick = () => {
-        if (!refreshSplit()) return;
-        const cents = Math.round(parseFloat(amtEl.value||'0')*100);
-        // Pay-what-you-can; floor enforced again server-side. Hosted checkout.
-        window.open(WORKER_URL+'/api/activate/'+tx.txId+'/checkout?amount='+cents, '_blank');
+    document.getElementById('activate-commons-btn').onclick = () => {
+        // Dodo hosted checkout — built server-side so keys never touch the client
+        window.open(WORKER_URL+'/api/activate/'+tx.txId+'/commons-checkout', '_blank');
     };
+
+    const link = payoutLink(tx.creatorPayoutMethod, tx.creatorPayoutHandle, creatorDollars);
+    const zelleNote = document.getElementById('activate-zelle-note');
+    const creatorBtn = document.getElementById('activate-creator-btn');
+    if (link) {
+        zelleNote.style.display = 'none';
+        creatorBtn.onclick = () => window.open(link, '_blank');
+    } else {
+        zelleNote.style.display = 'block';
+        zelleNote.textContent = 'ZELLE — send $'+creatorDollars+' to ' + (tx.creatorPayoutHandle || 'creator (no handle on file)');
+        creatorBtn.onclick = () => {};
+    }
 
     document.getElementById('light-commons').style.background = '#e8453c';
     document.getElementById('light-creator').style.background = '#e8453c';
-    document.getElementById('activate-status').textContent = 'AWAITING PAYMENT';
+    document.getElementById('activate-status').textContent = 'WAITING FOR BOTH LIGHTS';
     document.getElementById('activate-section').style.display = 'flex';
 
     if (activatePoll) clearInterval(activatePoll);
@@ -1629,7 +1631,6 @@ applyAuthUI();
 loadArchive();
 </script>
 <datalist id="city-list"></datalist>
-<a href="legal.html" style="position:fixed;bottom:26px;right:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.35;text-decoration:none;color:inherit;z-index:500;">LEGAL</a>
-<a href="mailto:2026@commons-on-demand.com" style="position:fixed;bottom:10px;right:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.35;text-decoration:none;color:inherit;z-index:500;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
+<a href="mailto:2026@commons-on-demand.com" style="position:fixed;bottom:8px;right:12px;font-size:8px;letter-spacing:2px;opacity:0.3;color:inherit;text-decoration:none;font-family:monospace;z-index:500;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
 </body>
 </html>
