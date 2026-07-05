@@ -45,14 +45,16 @@
             z-index: 100; pointer-events: none;
         }
         #header > * { pointer-events: auto; }
-        .title { 
-            font-size: 11px; font-weight: bold; letter-spacing: 3px; 
-            text-transform: uppercase; cursor: pointer; user-select: none;
-            color: var(--text);
+        .logo {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 18px; font-weight: 500; letter-spacing: 0.04em;
+            color: var(--text); cursor: pointer; text-decoration: none; white-space: nowrap;
         }
+        .ignition-wrap { display: inline-flex; align-items: center; }
+        .beta-tag { font-size: 8px; letter-spacing: 2px; opacity: 0.5; vertical-align: super; margin-left: 6px; }
         .btn { 
             background: none; border: 1px solid var(--text); color: var(--text);
-            padding: 4px 10px; font-size: 9px; cursor: pointer; text-transform: uppercase;
+            padding: 8px 16px; font-size: 13px; cursor: pointer; text-transform: uppercase;
             transition: 0.2s; letter-spacing: 1px; font-weight: bold;
             -webkit-tap-highlight-color: transparent;
         }
@@ -68,6 +70,7 @@
             font-size: 14px; line-height: 1; color: #3C64FF;
             text-decoration: none; cursor: pointer; user-select: none;
             -webkit-tap-highlight-color: transparent;
+            margin-right: 2px;
             animation: pulse-glow 2.4s ease-in-out infinite;
         }
         .ignition:hover { opacity: 1; }
@@ -241,7 +244,7 @@
 <body>
 
 <div id="header">
-    <div class="title" onclick="openSignIn()">COMMONS ON DEMAND <span style="font-size:8px;letter-spacing:2px;opacity:0.5;vertical-align:super;">BETA</span></div>
+    <div class="logo" onclick="openSignIn()"><span>COMMONS</span><span class="ignition-wrap"><span class="ignition">◉</span><span>N</span></span><span>DEMAND</span><span class="beta-tag">BETA</span></div>
     <div style="display:flex; gap:8px; align-items:center;">
         <span id="live-count" style="font-size:9px; letter-spacing:1px; opacity:0.6; font-family:monospace;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#7FFF00;margin-right:5px;animation:livepulse 1.6s infinite;"></span></span>
         <span id="user-display" class="auth-user"></span>
@@ -250,7 +253,6 @@
         <button class="btn" id="auth-btn" onclick="openSignIn()">SIGN IN</button>
         <button class="btn" style="display:none;" id="signout-btn" onclick="signOut()">SIGN OUT</button>
         <button class="btn" onclick="toggleMode()">◐</button>
-        <a class="ignition" href="index.html" id="ignition-mark" aria-label="The Commons" title="THE COMMONS">◉</a>
     </div>
 </div>
 
