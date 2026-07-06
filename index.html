@@ -70,8 +70,10 @@
             display: flex; flex-direction: column; justify-content: flex-end;
             pointer-events: none;
             z-index: 50;
-            overflow: hidden;
         }
+        @keyframes feedscroll { from { transform: translateY(0); } to { transform: translateY(calc(-50% - 7px)); } }
+        #feed-inner.scrolling { animation: feedscroll 40s linear infinite; }
+        #feed:hover #feed-inner.scrolling { animation-play-state: paused; }
         #feed-inner {
             display: flex; flex-direction: column; gap: 14px;
         }
@@ -209,15 +211,6 @@ function resize() {
 }
 resize();
 window.addEventListener('resize', resize);
-setInterval(() => {
-    const fi = document.getElementById('feed-inner'), feed = document.getElementById('feed');
-    if (!fi || !feed || fi.scrollHeight <= feed.clientHeight) return;
-    fi.style.transition = 'transform 0.6s linear';
-    const max = fi.scrollHeight - feed.clientHeight + 40;
-    window._feedY = (window._feedY || 0) + 20;
-    if (window._feedY > max) window._feedY = 0;
-    fi.style.transform = 'translateY(-' + window._feedY + 'px)';
-}, 2500);
 canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     zoom = Math.max(0.55, Math.min(2.6, zoom * (e.deltaY < 0 ? 1.08 : 0.92)));
@@ -568,6 +561,7 @@ function buildFeed() {
     });
 
     lines.sort((a, b) => a.expiresAt - b.expiresAt);
+    feedEl.classList.remove('scrolling');
 
     lines.forEach((item, i) => {
         const { maker, cluster } = item;
@@ -602,6 +596,15 @@ function buildFeed() {
             timeEl.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
             timeEl.className = 'feed-time' + (rem < 3600000 ? ' urgent' : '');
         }, 1000);
+    });
+
+    // Enable seamless marquee only when the list is long enough to overflow
+    requestAnimationFrame(() => {
+        const feed = document.getElementById('feed');
+        if (feedEl.scrollHeight > feed.clientHeight - 100) {  // DUP_MARQUEE
+            feedEl.innerHTML += feedEl.innerHTML;
+            feedEl.classList.add('scrolling');
+        }
     });
 }
 
