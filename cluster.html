@@ -702,7 +702,6 @@ async function doSignUp() {
     const name       = document.getElementById('signup-name').value.trim();
     const initials   = document.getElementById('signup-initials').value.trim().toUpperCase() || getInitials(name);
     const city       = document.getElementById('signup-city').value.trim();
-    if (city && !cityOnGlobe(city) && !confirm('City "' + city + '" is not on the globe map yet — you can register, but your dot won\'t appear until we add it. Continue?')) return;
     const role       = document.getElementById('signup-role').value;
     const accessCode = document.getElementById('signup-code').value.trim();
     const email      = document.getElementById('signup-email').value.trim();
