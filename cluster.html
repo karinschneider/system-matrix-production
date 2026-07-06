@@ -1045,7 +1045,7 @@ function renderMain() {
             openCluster(maker);
         };
 
-        if (dormant) { wrap.style.opacity = '0.35'; }
+        if (dormant && !isMine) { wrap.style.opacity = '0.35'; }
         makeDraggableIdentity(wrap, maker.id);
         canvas.appendChild(wrap);
     });
