@@ -93,11 +93,13 @@
         /* PULSE-GLOW — the signed-in user's own shape breathes in globe-blue,
            keeping its role color underneath */
         @keyframes identity-pulse-glow {
-            0%, 100% { box-shadow: 0 0 4px 1px rgba(120,180,255,0.4); }
-            50%      { box-shadow: 0 0 22px 6px rgba(120,180,255,0.95); }
+            0%, 100% { box-shadow: 0 0 10px 3px rgba(120,180,255,0.7); }
+            50%      { box-shadow: 0 0 34px 12px rgba(120,180,255,1); }
         }
         .identity-inner.is-mine {
-            animation: identity-pulse-glow 2.4s ease-in-out infinite;
+            animation: identity-pulse-glow 1.8s ease-in-out infinite;
+            border-color: rgba(150,200,255,1) !important;
+            border-width: 2px !important;
         }
         .identity-circle        { border-radius: 50%; border: 1px solid var(--pink); }
         .identity-circle-blue   { border-radius: 50%; border: 1px solid var(--blue); }
@@ -940,6 +942,12 @@ function spaceDims() {
 function centerSpace() {
     const cv = document.getElementById('canvas');
     const { w, h } = spaceDims();
+    // If signed in, scroll to your own glowing profile instead of center
+    if (authMakerId && makerPos[authMakerId]) {
+        const p = makerPos[authMakerId];
+        cv.scrollTo(Math.max(0, p.x - window.innerWidth / 2), Math.max(0, p.y - window.innerHeight / 2));
+        return;
+    }
     cv.scrollTo((w - window.innerWidth) / 2, Math.max(0, (h - window.innerHeight) / 3));
 }
 function renderMain() {
