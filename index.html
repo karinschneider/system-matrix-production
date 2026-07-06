@@ -56,7 +56,6 @@
         /* GLOBE */
         #globe-canvas {
             position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
             cursor: grab;
         }
         #globe-canvas.dragging { cursor: grabbing; }
@@ -70,10 +69,9 @@
             display: flex; flex-direction: column; justify-content: flex-end;
             pointer-events: none;
             z-index: 50;
+            overflow-y: auto;
         }
-        @keyframes feedscroll { from { transform: translateY(0); } to { transform: translateY(calc(-50% - 7px)); } }
-        #feed-inner.scrolling { animation: feedscroll 40s linear infinite; }
-        #feed:hover #feed-inner.scrolling { animation-play-state: paused; }
+        #feed::-webkit-scrollbar { display: none; }
         #feed-inner {
             display: flex; flex-direction: column; gap: 14px;
         }
@@ -203,8 +201,14 @@ const ctx    = canvas.getContext('2d');
 let W, H, cx, cy, R;
 
 function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    canvas.width  = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     cx = W / 2;
     cy = H / 2;
     R  = Math.min(W, H) * 0.38 * zoom;
@@ -561,7 +565,6 @@ function buildFeed() {
     });
 
     lines.sort((a, b) => a.expiresAt - b.expiresAt);
-    feedEl.classList.remove('scrolling');
 
     lines.forEach((item, i) => {
         const { maker, cluster } = item;
@@ -598,14 +601,14 @@ function buildFeed() {
         }, 1000);
     });
 
-    // Enable seamless marquee only when the list is long enough to overflow
-    requestAnimationFrame(() => {
+    // Auto-scroll the program via scrollTop (works with flex-end layout)
+    if (window._feedTimer) clearInterval(window._feedTimer);
+    window._feedTimer = setInterval(() => {
         const feed = document.getElementById('feed');
-        if (feedEl.scrollHeight > feed.clientHeight - 100) {  // DUP_MARQUEE
-            feedEl.innerHTML += feedEl.innerHTML;
-            feedEl.classList.add('scrolling');
-        }
-    });
+        if (!feed || feed.scrollHeight <= feed.clientHeight) return;
+        feed.scrollTop += 1;
+        if (feed.scrollTop >= feed.scrollHeight - feed.clientHeight) feed.scrollTop = 0;
+    }, 60);
 }
 
 /* ── TOGGLE MODE ── */
