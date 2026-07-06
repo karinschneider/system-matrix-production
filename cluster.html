@@ -1377,7 +1377,8 @@ function closeText() { document.getElementById('text-overlay').style.display='no
 /* ── INVITE ── */
 function showInvite(item) {
     const clusterTitle=currentCluster?currentCluster.title:''; const codeLine=item.accessCode?`\nAccess code (after payment): ${item.accessCode}`:'';
-    const msg=`You are invited to watch:\n\n"${item.title}"${item.artist?' by '+item.artist:''} (${item.year})${clusterTitle?'\nCluster: '+clusterTitle:''}\n\nAvailable for 24 hours only.\n${DATAROOM_URL}${codeLine}`;
+    const clusterLink = DATAROOM_URL + '?maker=' + encodeURIComponent(item.makerId || (currentMaker && currentMaker.id) || '');
+    const msg=`You are invited to watch:\n\n"${item.title}"${item.artist?' by '+item.artist:''} (${item.year})${clusterTitle?'\nCluster: '+clusterTitle:''}\n\nAvailable for 24 hours only.\n${clusterLink}${codeLine}`;
     document.getElementById('invite-text').textContent=msg; document.getElementById('invite-overlay').style.display='flex'; activeWork=item;
 }
 function closeInvite(e){if(e.target.id==='invite-overlay')document.getElementById('invite-overlay').style.display='none';}
