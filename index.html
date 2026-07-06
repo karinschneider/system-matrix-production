@@ -66,12 +66,11 @@
             top: 0; right: 0;
             width: 320px; height: 100vh;
             padding: 70px 24px 40px;
-            display: flex; flex-direction: column; justify-content: flex-end;
+            display: flex; flex-direction: column; justify-content: flex-start;
             pointer-events: none;
             z-index: 50;
-            overflow-y: auto;
+            overflow: hidden;
         }
-        #feed::-webkit-scrollbar { display: none; }
         #feed-inner {
             display: flex; flex-direction: column; gap: 14px;
         }
@@ -601,14 +600,24 @@ function buildFeed() {
         }, 1000);
     });
 
-    // Auto-scroll the program via scrollTop (works with flex-end layout)
-    if (window._feedTimer) clearInterval(window._feedTimer);
-    window._feedTimer = setInterval(() => {
+    // Conveyor loop: scroll the single set up; when it fully clears the
+    // viewport, reset to below — continuous cycle without clobbering the
+    // live countdown timers (no innerHTML duplication).
+    requestAnimationFrame(() => {
         const feed = document.getElementById('feed');
-        if (!feed || feed.scrollHeight <= feed.clientHeight) return;
-        feed.scrollTop += 1;
-        if (feed.scrollTop >= feed.scrollHeight - feed.clientHeight) feed.scrollTop = 0;
-    }, 60);
+        if (window._feedRAF) cancelAnimationFrame(window._feedRAF);
+        const contentH = feedEl.scrollHeight;
+        const viewH = feed.clientHeight;
+        if (contentH <= viewH) { feedEl.style.transform = 'translateY(0)'; return; }
+        let y = 0;
+        const step = () => {
+            y += 0.3;
+            if (y >= contentH + 20) y = -viewH;     // wrap: restart from bottom
+            feedEl.style.transform = 'translateY(' + (-y) + 'px)';
+            window._feedRAF = requestAnimationFrame(step);
+        };
+        window._feedRAF = requestAnimationFrame(step);
+    });
 }
 
 /* ── TOGGLE MODE ── */
@@ -628,7 +637,7 @@ async function loadData() {
         document.getElementById('live-count').textContent = liveCount + ' LIVE';
         buildFeed();
     } catch(e) {
-        document.getElementById('console-msg').textContent = 'OFFLINE';
+        document.getElementById('console-msg').textContent = 'THE EARTH IS OUR COMMONS';
     }
 }
 
