@@ -36,7 +36,7 @@
             0%, 100% { opacity: 0.4; text-shadow: 0 0 0 rgba(60,100,255,0); }
             50%      { opacity: 1;   text-shadow: 0 0 9px rgba(60,100,255,0.85); }
         }
-        .beta-tag { font-size: 10px; letter-spacing: 1.5px; opacity: 0.5; vertical-align: super; margin-left: 5px; }
+        .beta-tag { font-size: 7px; letter-spacing: 1.5px; opacity: 0.5; vertical-align: super; margin-left: 5px; }
         @media (max-width:640px) { .title{font-size:12px;gap:4px;} .ignition{font-size:10px;} .beta-tag{font-size:6px;} }
         #live-count {
             font-size: 11px; letter-spacing: 2px; font-family: monospace;
@@ -56,7 +56,6 @@
         /* GLOBE */
         #globe-canvas {
             position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
             cursor: grab;
         }
         #globe-canvas.dragging { cursor: grabbing; }
@@ -70,6 +69,7 @@
             display: flex; flex-direction: column; justify-content: flex-end;
             pointer-events: none;
             z-index: 50;
+            overflow: hidden;
         }
         #feed-inner {
             display: flex; flex-direction: column; gap: 14px;
@@ -148,10 +148,10 @@
 <body>
 
 <div id="header">
-    <a class="title" href="index.html"><span>COMMONS</span><span class="ignition-wrap"><span class="ignition">◉</span><span>N</span></span><span>DEMAND</span><span class="beta-tag">BETA</span></a>
+    <a class="title" href="cluster.html"><span>COMMONS</span><span class="ignition-wrap"><span class="ignition">◉</span><span>N</span></span><span>DEMAND</span><span class="beta-tag">BETA</span></a>
     <div style="display:flex;gap:8px;align-items:center;">
         <span id="live-count"></span>
-        <a id="enter-link" href="cluster.html">ENTRY</a>
+        <a id="enter-link" href="cluster.html">ENTRY →</a>
         <button class="toggle" onclick="toggleMode()">◐</button>
     </div>
 </div>
@@ -167,7 +167,7 @@
         <a id="console-msg" href="economy.html">THE EARTH IS OUR COMMONS</a>
         <a href="legal.html" class="legal-link" style="font-family:monospace;font-size:11px;letter-spacing:2px;color:#3C64FF;text-decoration:none;">LEGAL</a>
     </div>
-    <a href="mailto:2026@commons-on-demand.com" style="font-family:monospace;font-size:8px;letter-spacing:2px;color:#6b6b6b;text-decoration:none;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
+    <a href="mailto:2026@commons-on-demand.com" style="font-family:monospace;font-size:10px;letter-spacing:2px;color:#6b6b6b;text-decoration:none;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
 </div>
 
 <div id="tooltip"></div>
@@ -200,14 +200,32 @@ const ctx    = canvas.getContext('2d');
 let W, H, cx, cy, R;
 
 function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    canvas.width  = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     cx = W / 2;
     cy = H / 2;
     R  = Math.min(W, H) * 0.38 * zoom;
 }
 resize();
 window.addEventListener('resize', resize);
+// Gentle auto-scroll of the written program (many entries during testing)
+setInterval(() => {
+    const fi = document.getElementById('feed-inner');
+    if (!fi) return;
+    const feed = document.getElementById('feed');
+    if (fi.scrollHeight <= feed.clientHeight) return;
+    fi.style.transition = 'transform 0.6s linear';
+    const max = fi.scrollHeight - feed.clientHeight + 40;
+    window._feedY = ((window._feedY || 0) + 20);
+    if (window._feedY > max) window._feedY = 0;
+    fi.style.transform = 'translateY(-' + window._feedY + 'px)';
+}, 2500);
 canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     zoom = Math.max(0.55, Math.min(2.6, zoom * (e.deltaY < 0 ? 1.08 : 0.92)));
@@ -354,7 +372,7 @@ function latLonTo3D(lat, lon, rotation) {
     const y3 = R * Math.cos(phi);
     const z3 = R * Math.sin(phi) * Math.sin(theta);
     // tilt the pole toward the viewer + a gentle idle nod so rotation is 3D
-    const t  = (GLOBE_TILT + tiltWobble) * Math.PI / 180;
+    const t  = GLOBE_TILT * Math.PI / 180;
     const y2 = y3 * Math.cos(t) - z3 * Math.sin(t);
     const z2 = y3 * Math.sin(t) + z3 * Math.cos(t);
     return { x: cx + x3, y: cy - y2, z: z2, visible: z2 > -R * 0.1 };
@@ -473,7 +491,7 @@ function drawGlobe(rotation) {
 /* ── ANIMATE ── */
 function animate() {
     if (!isDragging && Math.abs(spinVel) > 0.05) { rot += spinVel; spinVel *= 0.94; }   // glide
-    else if (autoRotate && !isDragging) { rot += 0.04; wobblePhase += 0.004; tiltWobble = Math.sin(wobblePhase) * 6; }
+    else if (autoRotate && !isDragging) { rot += 0.04; }
     drawGlobe(rot);
     requestAnimationFrame(animate);
 }
