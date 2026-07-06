@@ -972,12 +972,17 @@ function renderMain() {
         const { w: W, h: H } = identitySize(maker.role);
         if (!makerPos[maker.id]) {
             const S = spaceDims();
-            // Golden-angle scatter around the CENTER of the space — profiles
-            // form a loose constellation instead of stacking near the top.
-            const ang = i * 2.39996;                     // golden angle (rad)
-            const rad = 90 + 85 * Math.sqrt(i);          // spiral outward
-            let px = S.w/2 - W/2 + Math.cos(ang) * rad;
-            let py = S.h/2 - H/2 + Math.sin(ang) * rad * 0.75;
+            let px, py;
+            if (isMine) {
+                // Spawn at space-center; centerSpace() scrolls here so it's
+                // centered on screen and glowing — easy to find.
+                px = S.w/2 - W/2; py = S.h/2 - H/2;
+            } else {
+                const ang = i * 2.39996;                     // golden angle (rad)
+                const rad = 90 + 85 * Math.sqrt(i);          // spiral outward
+                px = S.w/2 - W/2 + Math.cos(ang) * rad;
+                py = S.h/2 - H/2 + Math.sin(ang) * rad * 0.75;
+            }
             px = Math.max(12, Math.min(px, S.w - W - 12));
             py = Math.max(80, Math.min(py, S.h - H - 30));
             makerPos[maker.id] = { x: px, y: py };
