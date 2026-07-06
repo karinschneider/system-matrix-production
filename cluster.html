@@ -977,9 +977,7 @@ function renderMain() {
         const pos = makerPos[maker.id];
         const wrap = document.createElement('div');
         wrap.className = 'identity-wrap';
-        const _dot = dormant && !isMine;   // dormant profiles shrink to a small dot
-        const _W = _dot ? 14 : W, _H = _dot ? 14 : H;
-        wrap.style.cssText = `left:${pos.x}px;top:${pos.y}px;width:${_W}px;height:${_H}px;`;
+        wrap.style.cssText = `left:${pos.x}px;top:${pos.y}px;width:${W}px;height:${H}px;`;
         wrap.dataset.id = maker.id;
 
         const inner = document.createElement('div');
@@ -990,13 +988,13 @@ function renderMain() {
         }
         const init = document.createElement('div');
         init.className = 'identity-initials';
-        init.textContent = _dot ? '' : (maker.initials || getInitials(maker.name));
+        init.textContent = maker.initials || getInitials(maker.name);
         inner.appendChild(init);
         wrap.appendChild(inner);
 
         const nameEl = document.createElement('div');
         nameEl.className = 'identity-name';
-        nameEl.textContent = _dot ? '' : (maker.name || '');
+        nameEl.textContent = maker.name || '';
         wrap.appendChild(nameEl);
 
         if (makerCluster) {
