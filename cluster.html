@@ -248,7 +248,7 @@
 <body>
 
 <div id="header">
-    <div class="logo" onclick="openSignIn()"><span>COMMONS</span><span class="ignition-wrap"><span class="ignition">◉</span><span>N</span></span><span>DEMAND</span><span class="beta-tag">BETA</span></div>
+    <div class="logo" onclick="window.location.href='index.html'" style="cursor:pointer;"><span>COMMONS</span><span class="ignition-wrap"><span class="ignition">◉</span><span>N</span></span><span>DEMAND</span><span class="beta-tag">BETA</span></div>
     <div style="display:flex; gap:8px; align-items:center;">
         <span id="live-count" style="font-size:9px; letter-spacing:1px; opacity:0.6; font-family:monospace;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#7FFF00;margin-right:5px;animation:livepulse 1.6s infinite;"></span></span>
         <span id="user-display" class="auth-user"></span>
@@ -1669,6 +1669,7 @@ function getInitials(name){ if(!name)return'?'; return name.split(' ').map(p=>p[
 // Init
 applyAuthUI();
 loadArchive();
+if (new URLSearchParams(location.search).get('signin') === '1' && !authToken) openSignIn();
 </script>
 <datalist id="city-list"></datalist>
 <a href="legal.html" style="position:fixed;bottom:10px;left:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.35;text-decoration:none;color:inherit;z-index:500;">LEGAL</a>
