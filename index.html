@@ -24,41 +24,34 @@
             z-index: 100; pointer-events: none;
         }
         #header > * { pointer-events: auto; }
-        .logo {
-            display: inline-flex; align-items: center; gap: 8px;
-            font-size: 18px; font-weight: 500; letter-spacing: 0.04em;
-            color: #fff; cursor: pointer; text-decoration: none; white-space: nowrap;
+        .title {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 14px; font-weight: 600; letter-spacing: 0.03em;
+            color: #fff; text-decoration: none; white-space: nowrap; cursor: pointer;
         }
-        body.light-mode .logo { color: #111; }
+        body.light-mode .title { color: #111; }
         .ignition-wrap { display: inline-flex; align-items: center; }
-        .ignition {
-            font-size: 14px; line-height: 1; color: #3C64FF;
-            margin-right: 2px;
-            animation: pulse-glow 2.4s ease-in-out infinite;
-        }
+        .ignition { font-size: 11px; color: #3C64FF; margin-right: 2px; animation: pulse-glow 2.4s ease-in-out infinite; }
         @keyframes pulse-glow {
             0%, 100% { opacity: 0.4; text-shadow: 0 0 0 rgba(60,100,255,0); }
             50%      { opacity: 1;   text-shadow: 0 0 9px rgba(60,100,255,0.85); }
         }
-        .beta-tag {
-            font-size: 8px; letter-spacing: 2px; opacity: 0.5; vertical-align: super;
-            margin-left: 6px;
-        }
+        .beta-tag { font-size: 7px; letter-spacing: 1.5px; opacity: 0.5; vertical-align: super; margin-left: 5px; }
+        @media (max-width:640px) { .title{font-size:12px;gap:4px;} .ignition{font-size:10px;} .beta-tag{font-size:6px;} }
         #live-count {
-            font-size: 13px; letter-spacing: 2px; font-family: monospace;
+            font-size: 11px; letter-spacing: 2px; font-family: monospace;
             color: #888;
         }
         body.light-mode #live-count { color: #888; }
-        .btn {
+        .toggle {
             background: none; border: 1px solid #444; color: #fff;
             width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
-        body.light-mode .btn { border-color: #444; color: #000; }
-        .btn:hover { background: rgba(255,255,255,0.15); }
-        body.light-mode .btn:hover { background: rgba(0,0,0,0.1); }
+        body.light-mode .toggle { border-color: #ccc; color: #000; }
+        .toggle:hover { background: rgba(255,255,255,0.15); }
+        body.light-mode .toggle:hover { background: rgba(0,0,0,0.1); }
 
         /* GLOBE */
         #globe-canvas {
@@ -116,17 +109,16 @@
         }
         #bottom a { pointer-events: auto; }
         #console-msg {
-            font-family: monospace; font-size: 16px;
+            font-family: monospace; font-size: 13px;
             color: #3C64FF; letter-spacing: 1px;
             text-decoration: none; cursor: pointer; transition: text-shadow 0.2s;
         }
         #console-msg:hover { text-shadow: 0 0 9px rgba(60,100,255,0.85); }
         .legal-link:hover { text-shadow: 0 0 9px rgba(60,100,255,0.85); }
         body.light-mode #console-msg { color: #3C64FF; }
-        body.light-mode #console-msg:hover { text-shadow: 0 0 9px rgba(60,100,255,0.85); }
         #enter-link {
-            background: #fff; color: #000; font-size: 13px; font-weight: 500;
-            padding: 8px 16px; text-decoration: none;
+            background: #fff; color: #000; font-size: 11px; font-weight: 600;
+            padding: 6px 12px; text-decoration: none;
             pointer-events: auto;
             transition: opacity 0.2s;
         }
@@ -156,11 +148,11 @@
 <body>
 
 <div id="header">
-    <a class="logo" href="index.html"><span>COMMONS</span><span class="ignition-wrap"><span class="ignition">◉</span><span>N</span></span><span>DEMAND</span><span class="beta-tag">BETA</span></a>
+    <a class="title" href="index.html"><span>COMMONS</span><span class="ignition-wrap"><span class="ignition">◉</span><span>N</span></span><span>DEMAND</span><span class="beta-tag">BETA</span></a>
     <div style="display:flex;gap:8px;align-items:center;">
         <span id="live-count"></span>
         <a id="enter-link" href="cluster.html">ENTRY →</a>
-        <button class="btn" onclick="toggleMode()">◐</button>
+        <button class="toggle" onclick="toggleMode()">◐</button>
     </div>
 </div>
 
@@ -171,11 +163,11 @@
 </div>
 
 <div id="bottom">
-    <div style="display:flex;flex-direction:column;gap:4px;">
+    <div style="display:flex; flex-direction:column; gap:3px;">
         <a id="console-msg" href="economy.html">THE EARTH IS OUR COMMONS</a>
-        <a href="legal.html" class="legal-link" style="font-family:monospace;font-size:14px;letter-spacing:2px;color:#3C64FF;text-decoration:none;transition:text-shadow 0.2s;">LEGAL</a>
+        <a href="legal.html" class="legal-link" style="font-family:monospace;font-size:11px;letter-spacing:2px;color:#3C64FF;text-decoration:none;">LEGAL</a>
     </div>
-    <a href="mailto:2026@commons-on-demand.com" style="font-family:monospace;font-size:12px;letter-spacing:2px;color:#6b6b6b;text-decoration:none;z-index:500;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
+    <a href="mailto:2026@commons-on-demand.com" style="font-family:monospace;font-size:10px;letter-spacing:2px;color:#6b6b6b;text-decoration:none;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
 </div>
 
 <div id="tooltip"></div>
