@@ -539,7 +539,6 @@
                         <option value="PERFORMANCE">PERFORMANCE — LIVE</option>
                         <option value="SOUND">SOUND</option>
                         <option value="WWW">WWW</option>
-                        <option value="SLIDES">SLIDES</option>
                         <option value="ONLINE">ONLINE (live link)</option>
                         <option value="IMAGE">IMAGE</option>
                         <option value="TEXT">TEXT</option>
@@ -548,7 +547,6 @@
                         <option value="PAY_VIDEO">PAY — VIDEO</option>
                         <option value="PAY_SOUND">PAY — SOUND</option>
                         <option value="PAY_WWW">PAY — WWW</option>
-                        <option value="PAY_SLIDES">PAY — SLIDES</option>
                         <option value="PAY_ONLINE">PAY — ONLINE</option>
                         <option value="PAY_IMAGE">PAY — IMAGE</option>
                         <option value="PAY_TEXT">PAY — TEXT</option>
@@ -979,7 +977,9 @@ function renderMain() {
         const pos = makerPos[maker.id];
         const wrap = document.createElement('div');
         wrap.className = 'identity-wrap';
-        wrap.style.cssText = `left:${pos.x}px;top:${pos.y}px;width:${W}px;height:${H}px;`;
+        const _dot = dormant && !isMine;   // dormant profiles shrink to a small dot
+        const _W = _dot ? 14 : W, _H = _dot ? 14 : H;
+        wrap.style.cssText = `left:${pos.x}px;top:${pos.y}px;width:${_W}px;height:${_H}px;`;
         wrap.dataset.id = maker.id;
 
         const inner = document.createElement('div');
@@ -990,13 +990,13 @@ function renderMain() {
         }
         const init = document.createElement('div');
         init.className = 'identity-initials';
-        init.textContent = maker.initials || getInitials(maker.name);
+        init.textContent = _dot ? '' : (maker.initials || getInitials(maker.name));
         inner.appendChild(init);
         wrap.appendChild(inner);
 
         const nameEl = document.createElement('div');
         nameEl.className = 'identity-name';
-        nameEl.textContent = maker.name || '';
+        nameEl.textContent = _dot ? '' : (maker.name || '');
         wrap.appendChild(nameEl);
 
         if (makerCluster) {
