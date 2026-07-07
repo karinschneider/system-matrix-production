@@ -153,9 +153,9 @@
         #cluster-header { position: fixed; top: 0; left: 0; right: 0; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 300; pointer-events: none; }
         #cluster-header > * { pointer-events: auto; }
         #cluster-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; }
-        .cluster-name { font-size: 11px; font-weight: bold; letter-spacing: 3px; text-transform: uppercase; color: var(--text); }
+        .cluster-name { font-size: 26px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; color: var(--text); line-height: 1.05; }
         .cluster-sub  { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); opacity: 0.4; margin-top: 3px; }
-        .cluster-title-display { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); opacity: 0.6; margin-top: 2px; }
+        .cluster-title-display { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); opacity: 0.7; margin-top: 5px; }
 
         /* OVERLAYS */
         .overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.92); z-index: 5000; display: none; justify-content: center; align-items: flex-start; backdrop-filter: blur(8px); overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 40px 0 80px; }
@@ -300,7 +300,9 @@
         </div>
     </div>
     <div id="cluster-canvas"></div>
-    <div id="cluster-lock" style="position:fixed;top:0;left:0;width:100vw;height:100vh;backdrop-filter:blur(14px);background:rgba(0,0,0,0.55);z-index:250;display:none;"></div>
+    <div id="cluster-lock" style="position:fixed;top:0;left:0;width:100vw;height:100vh;backdrop-filter:blur(14px);background:rgba(0,0,0,0.55);z-index:250;display:none;">
+        <div style="position:absolute;bottom:80px;left:0;right:0;text-align:center;font-family:monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#fff;opacity:0.7;pointer-events:none;">ACTIVATE TO ATTEND</div>
+    </div>
 </div>
 
 <!-- ACTIVATE OVERLAY — two-light payment gate for a cluster's card -->
@@ -349,6 +351,7 @@
         <div class="auth-field">
             <label>Password</label>
             <input type="password" id="signin-password" placeholder="••••••••" autocomplete="current-password">
+            <a href="mailto:2026@commons-on-demand.com?subject=Password%20reset" style="display:block;margin-top:8px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);opacity:0.7;text-decoration:none;">✉ Forgot password?</a>
         </div>
         <button class="btn" style="width:100%;padding:10px;margin-top:8px;font-size:10px;" onclick="doSignIn()">SIGN IN</button>
         <div class="auth-switch" onclick="switchToRegister()">Have an invite code? Create account →</div>
@@ -911,7 +914,10 @@ async function loadArchive() {
     try {
         // Signed-in users send their token so the server returns their own
         // protected fields (access codes, media paths of their coded works).
-        const opts = authToken ? { headers: { 'Authorization': 'Bearer ' + authToken } } : undefined;
+        const hdrs = {};
+        if (authToken) hdrs['Authorization'] = 'Bearer ' + authToken;
+        if (activationTxs.length) hdrs['X-Activations'] = activationTxs.join(',');
+        const opts = Object.keys(hdrs).length ? { headers: hdrs } : undefined;
         const res = await fetch(WORKER_URL + '/api/data?nc=' + Date.now(), opts);
         if (!res.ok) throw new Error('server error');
         const data = await res.json();
@@ -1453,8 +1459,9 @@ async function deleteMaker(id){ if(!confirm('Delete this profile and all its wor
        both flags are true.
 */
 let activatedClusters = new Set(JSON.parse(localStorage.getItem('cod_activated')||'[]'));
+let activationTxs = JSON.parse(localStorage.getItem('cod_tx')||'[]');
 function isActivated(clusterId){ return activatedClusters.has(String(clusterId)); }
-function markActivated(clusterId){ activatedClusters.add(String(clusterId)); localStorage.setItem('cod_activated', JSON.stringify([...activatedClusters])); }
+function markActivated(clusterId, txId){ activatedClusters.add(String(clusterId)); localStorage.setItem('cod_activated', JSON.stringify([...activatedClusters])); if (txId && !activationTxs.includes(txId)) { activationTxs.push(txId); localStorage.setItem('cod_tx', JSON.stringify(activationTxs.slice(-40))); } }
 
 let activatePoll = null;
 let activateTx   = null;
@@ -1581,10 +1588,12 @@ async function pollActivation(){
                 a.download='commons-card-'+activateTx.txId+'.svg'; a.click();
             }
         } catch(e){}
-        markActivated(currentCluster.id);
-        setTimeout(() => {
+        markActivated(currentCluster.id, activateTx.txId);
+        setTimeout(async () => {
             closeActivate();
             document.getElementById('cluster-lock').style.display = 'none';
+            await loadArchive();          // re-fetch with X-Activations → signed media
+            if (currentMaker) renderCluster();
         }, 1200);
     } else {
         document.getElementById('activate-status').textContent =
