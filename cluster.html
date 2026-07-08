@@ -121,6 +121,11 @@
         .shape-performance { border: 1px solid var(--pink); border-radius: 50%; background: transparent; }
         .shape-online      { border: 1px solid var(--pink); border-radius: 4px; background: transparent; }
         .shape-pay-online  { border: 1px solid var(--pink); border-radius: 4px; background: rgba(196,92,122,0.08); }
+        @keyframes live-pulse { 0%,100%{opacity:0.35;} 50%{opacity:1;} }
+        .shape-performance::before {
+            content:''; position:absolute; top:16px; right:16px; width:6px; height:6px;
+            border-radius:50%; background:#e8453c; animation:live-pulse 1.4s ease-in-out infinite;
+        }
         .shape-sound       { border: 1px solid var(--grey); background: transparent; }
         .shape-www         { border: 1px solid var(--pink); background: transparent; }
         .shape-image       { border: 1px solid var(--grey); background: transparent; }
@@ -279,7 +284,7 @@
     <div class="db-controls">
         <span class="admin-only" onclick="exportData()">EXPORT</span>
     </div>
-    <div style="font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.15);">2026 © commons-on-demand.com</div>
+    <div style="font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.15);">© 2026 Commons On Demand</div>
 </div>
 
 <!-- CLUSTER VIEW -->
@@ -351,9 +356,9 @@
         <div class="auth-field">
             <label>Password</label>
             <input type="password" id="signin-password" placeholder="••••••••" autocomplete="current-password">
-            <a href="mailto:2026@commons-on-demand.com?subject=Password%20reset" style="display:block;margin-top:8px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);opacity:0.7;text-decoration:none;">✉ Forgot password?</a>
         </div>
         <button class="btn" style="width:100%;padding:10px;margin-top:8px;font-size:10px;" onclick="doSignIn()">SIGN IN</button>
+        <a href="mailto:contact@commons-on-demand.com?subject=Password%20reset%20request" style="display:block;text-align:center;margin-top:10px;font-family:monospace;font-size:9px;letter-spacing:1px;color:inherit;opacity:0.5;text-decoration:none;">✉ Forgot password?</a>
         <div class="auth-switch" onclick="switchToRegister()">Have an invite code? Create account →</div>
     </div>
 </div>
@@ -399,6 +404,10 @@
         <div class="auth-field">
             <label>Password</label>
             <input type="password" id="signup-password" placeholder="Choose a password" autocomplete="new-password">
+        </div>
+        <div class="auth-field">
+            <label>PayPal email — for your monthly payout</label>
+            <input type="email" id="signup-paypal" placeholder="where your 90% arrives" autocomplete="off">
         </div>
         <div class="auth-field">
             <label>Access code (optional)</label>
@@ -709,14 +718,16 @@ async function doSignUp() {
     const accessCode = document.getElementById('signup-code').value.trim();
     const email      = document.getElementById('signup-email').value.trim();
     const password   = document.getElementById('signup-password').value;
+    const paypalEmail = document.getElementById('signup-paypal').value.trim();
     const errEl      = document.getElementById('signup-error');
     errEl.style.display = 'none';
-    if (!inviteCode || !name || !city || !role || !email || !password) { errEl.textContent = 'ALL FIELDS REQUIRED'; errEl.style.display = 'block'; return; }
+    if (!inviteCode || !name || !city || !role || !email || !password || !paypalEmail) { errEl.textContent = 'ALL FIELDS REQUIRED'; errEl.style.display = 'block'; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmail)) { errEl.textContent = 'PAYPAL EMAIL LOOKS INVALID'; errEl.style.display = 'block'; return; }
     if (password.length < 8) { errEl.textContent = 'PASSWORD MIN 8 CHARACTERS'; errEl.style.display = 'block'; return; }
     try {
         const res  = await fetch(WORKER_URL + '/api/auth/register', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ inviteCode, name, initials, city, role, accessCode, email, password })
+            body: JSON.stringify({ inviteCode, name, initials, city, role, accessCode, email, password, paypalEmail })
         });
         if (!res.ok) { errEl.textContent = await readError(res); errEl.style.display = 'block'; return; }
         const data = await res.json();
@@ -871,8 +882,8 @@ function handleModeChange(mode) {
     document.getElementById('materials').style.height = isText ? '200px' : '80px';
     document.getElementById('file-link-field').style.display   = noFile ? 'none' : '';
     document.getElementById('file-upload-field').style.display = noFile ? 'none' : '';
-    document.getElementById('url-link-field').style.display    = (isWWW || isSlides || isOnline) ? '' : 'none';
-    document.getElementById('url-link-label').textContent = isSlides ? 'Published presentation URL (optional)' : (isOnline ? 'Live / stream URL' : 'URL Link (for WWW entries)');
+    document.getElementById('url-link-field').style.display    = (isWWW || isSlides || isOnline || isPerf) ? '' : 'none';
+    document.getElementById('url-link-label').textContent = isSlides ? 'Published presentation URL (optional)' : (isPerf ? 'Live performance URL (Daily.co room, YouTube Live, Vimeo, Twitch)' : (isOnline ? 'Live / stream URL' : 'URL Link (for WWW entries)'));
     const fileHint = document.getElementById('file-hint');
     if (fileHint) fileHint.textContent = isSlides ? 'SLIDES: upload a PDF — export from Keynote/PowerPoint as PDF first. Other slide formats are not supported.' : '';
     document.getElementById('linkUrl').placeholder = isSlides ? 'https://...' : 'https://yourproject.com';
@@ -998,6 +1009,12 @@ function renderMain() {
         wrap.className = 'identity-wrap';
         wrap.style.cssText = `left:${pos.x}px;top:${pos.y}px;width:${W}px;height:${H}px;`;
         wrap.dataset.id = maker.id;
+        // Dormant profiles recede for everyone except admin (management view)
+        // and the owner (must find their own). Live doors stay full size.
+        if (dormant && !isAdmin && !isMine) {
+            wrap.style.transform = 'scale(0.4)';
+            wrap.style.opacity = '0.55';
+        }
 
         const inner = document.createElement('div');
         inner.className = 'identity-inner ' + roleClass(maker.role);
@@ -1017,6 +1034,9 @@ function renderMain() {
         wrap.appendChild(nameEl);
 
         if (makerCluster) {
+            const door = document.createElement('div');
+            door.style.cssText = 'position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;background:#3C64FF;box-shadow:0 0 6px rgba(60,100,255,0.6);animation:live-pulse 1.4s ease-in-out infinite;pointer-events:none;';
+            inner.appendChild(door);
             const cdEl = document.createElement('div');
             cdEl.className = 'identity-cd';
             wrap.appendChild(cdEl);
@@ -1343,6 +1363,7 @@ function openRoom(item) {
         // Most slide hosts refuse iframes — open directly instead
         window.open(item.linkUrl||item.manualPath,'_blank'); return;
     }
+    if (item.mode==='PERFORMANCE' && item.linkUrl) { openLive(item); return; }
     if ((item.mode==='ONLINE'||item.mode==='PAY_ONLINE') && item.linkUrl) { window.open(item.linkUrl,'_blank'); return; }
     const room=document.getElementById('viewing-room'), container=document.getElementById('media-container');
     container.innerHTML=''; room.style.display='flex'; document.body.style.overflow='hidden';
@@ -1374,7 +1395,44 @@ function openRoom(item) {
     }
 }
 
-function closeRoom() { const r=document.getElementById('viewing-room'); r.style.display='none'; document.getElementById('media-container').innerHTML=''; const cap=document.getElementById('room-caption'); if(cap) cap.remove(); document.body.style.overflow='hidden'; setViewBg(themeBg()); }
+function closeRoom() { const r=document.getElementById('viewing-room'); r.style.display='none'; document.getElementById('media-container').innerHTML=''; const cap=document.getElementById('room-caption'); if(cap) cap.remove(); const lv=document.getElementById('live-badge'); if(lv) lv.remove(); document.body.style.overflow='hidden'; setViewBg(themeBg()); }
+
+/* ── LIVE (ONLINE mode played in-venue, not a new tab) ── */
+function liveEmbedUrl(url){
+    try {
+        const u = new URL(url);
+        const h = u.hostname.replace('www.','');
+        if (h==='youtube.com' && u.searchParams.get('v')) return 'https://www.youtube.com/embed/'+u.searchParams.get('v')+'?autoplay=1';
+        if (h==='youtu.be') return 'https://www.youtube.com/embed/'+u.pathname.slice(1)+'?autoplay=1';
+        if (h==='vimeo.com' && /^\/\d+/.test(u.pathname)) return 'https://player.vimeo.com/video'+u.pathname+'?autoplay=1';
+        if (h==='twitch.tv' && u.pathname.length>1) return 'https://player.twitch.tv/?channel='+u.pathname.slice(1)+'&parent='+location.hostname;
+        return url; // daily.co rooms and most stream embeds iframe as-is
+    } catch(e){ return url; }
+}
+function openLive(item){
+    activeWork = item;
+    const room=document.getElementById('viewing-room'), container=document.getElementById('media-container');
+    container.innerHTML=''; room.style.display='flex'; document.body.style.overflow='hidden';
+    setViewBg('#000000');
+    const old=document.getElementById('room-caption'); if(old) old.remove();
+    const oldLv=document.getElementById('live-badge'); if(oldLv) oldLv.remove();
+    const badge=document.createElement('div'); badge.id='live-badge';
+    badge.style.cssText='position:absolute;top:18px;left:18px;display:flex;align-items:center;gap:7px;font-family:monospace;font-size:10px;letter-spacing:3px;color:#fff;z-index:10;pointer-events:none;';
+    badge.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:#e8453c;animation:live-pulse 1.4s ease-in-out infinite;"></span>LIVE';
+    room.appendChild(badge);
+    const iframe=document.createElement('iframe');
+    iframe.src=liveEmbedUrl(item.linkUrl);
+    iframe.style.cssText='width:100%;height:100%;border:none;';
+    iframe.setAttribute('allowfullscreen','');
+    iframe.setAttribute('allow','autoplay; fullscreen; camera; microphone; display-capture');
+    container.appendChild(iframe);
+    const fb=document.createElement('a');
+    fb.href=item.linkUrl; fb.target='_blank'; fb.rel='noopener';
+    fb.textContent='STREAM NOT SHOWING? OPEN DIRECTLY →';
+    fb.style.cssText='position:absolute;bottom:14px;right:18px;font-family:monospace;font-size:8px;letter-spacing:2px;color:#fff;opacity:0.35;text-decoration:none;z-index:10;';
+    fb.id='room-caption';
+    room.appendChild(fb);
+}
 function setViewBg(c){ const r=document.getElementById('viewing-room'); r.style.backgroundColor=c; r.style.color = (c==='#ffffff') ? '#000' : '#fff'; }
 function themeBg(){ return document.body.classList.contains('light-mode') ? '#ffffff' : '#000000'; }
 function openText(item) { document.getElementById('text-title').textContent=item.title||''; document.getElementById('text-author').textContent=item.artist||''; document.getElementById('text-body').textContent=item.materials||''; document.getElementById('text-overlay').style.display='block'; document.getElementById('text-overlay').scrollTop=0; }
@@ -1697,6 +1755,6 @@ if (new URLSearchParams(location.search).get('signin') === '1' && !authToken) op
 </script>
 <datalist id="city-list"></datalist>
 <a href="legal.html" style="position:fixed;bottom:10px;left:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.35;text-decoration:none;color:inherit;z-index:500;">LEGAL</a>
-<a href="mailto:2026@commons-on-demand.com" style="position:fixed;bottom:10px;right:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.35;text-decoration:none;color:inherit;z-index:500;">✉<span class="cp-t"> 2026 © commons-on-demand.com</span></a>
+<a href="mailto:contact@commons-on-demand.com" style="position:fixed;bottom:10px;right:14px;font-family:monospace;font-size:8px;letter-spacing:2px;opacity:0.35;text-decoration:none;color:inherit;z-index:500;">✉<span class="cp-t"> © 2026 Commons On Demand</span></a>
 </body>
 </html>
